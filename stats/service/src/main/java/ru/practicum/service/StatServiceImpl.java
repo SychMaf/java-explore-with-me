@@ -27,20 +27,18 @@ public class StatServiceImpl implements StatService {
     @Override
     @Transactional(readOnly = true)
     public List<OutputDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
-        List<OutputDto> result;
         if (unique) {
             if (uris.isEmpty()) {
-                result = statRepo.findWithoutUrisAndUniqueIp(start, end);
+                return statRepo.findWithoutUrisAndUniqueIp(start, end);
             } else {
-                result = statRepo.findWithUrisAndUniqueIp(start, end, uris);
+                return statRepo.findWithUrisAndUniqueIp(start, end, uris);
             }
         } else {
             if (uris.isEmpty()) {
-                result = statRepo.findAllWithoutUrisAndNotUniqueIp(start, end);
+                return statRepo.findAllWithoutUrisAndNotUniqueIp(start, end);
             } else {
-                result = statRepo.findAllWithUrisAndNotUniqueIp(start, end, uris);
+                return statRepo.findAllWithUrisAndNotUniqueIp(start, end, uris);
             }
         }
-        return result;
     }
 }

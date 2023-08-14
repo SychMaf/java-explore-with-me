@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class InputDto {
     @NotBlank
-    @Size(max = 500)
+    @Size(max = 512)
     private String app;
     @NotBlank
-    @Size(max = 500)
+    @Size(max = 512)
     private String uri;
     @NotBlank
-    @Size(max = 64)
+    @Size(max = 15)
     private String ip;
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
