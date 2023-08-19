@@ -3,6 +3,7 @@ package ru.practicum.events.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
@@ -12,7 +13,7 @@ import ru.practicum.events.model.AdminUpdateState;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
 import ru.practicum.events.model.UserUpdateState;
-import ru.practicum.events.repo.EventRepo;
+import ru.practicum.events.repo.*;
 import ru.practicum.exception.exceptions.NotFoundException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
@@ -123,7 +124,24 @@ public class EventServiceImpl implements EventsService {
 
     @Override
     public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
-        return null;
+        List<Event> all = eventRepo.findAll();
+        if (rangeStart == null && rangeEnd == null) {
+            rangeStart = LocalDateTime.now();
+        }
+        Pageable pageable = PageRequest.of(from / size, size);
+        EventCriteria criteria = EventCriteria.builder()
+                .text(text)
+                .categories(categories)
+                .rangeEnd(rangeEnd)
+                .rangeStart(rangeStart)
+                .onlyAvailable(onlyAvailable)
+                .sortParam(SortParam.valueOf(sort))
+                .build();
+        EventSpecification eventSpecification = new EventSpecification(criteria);
+
+        return eventRepo.findAll(eventSpecification, pageable).stream()
+                .map(EventMapper::eventToShortOutputDto)
+                .collect(Collectors.toList());
     }
 
     @Override
