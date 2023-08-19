@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.CategoryDtoMapper;
 import ru.practicum.category.dto.InputCategoryDto;
 import ru.practicum.category.dto.OutputCategoryDto;
@@ -21,6 +22,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepo categoryRepo;
 
     @Override
+    @Transactional
     public OutputCategoryDto createCategory(InputCategoryDto inputCategoryDto) {
         if (categoryRepo.existsByName(inputCategoryDto.getName())) {
             throw new CategoryUniqueNameException("Name already exist");
@@ -30,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Long catId) { //ПРОПИСАТЬ ЧЕК НА ПРОВЕРКУ НАЛИЧИЯ ТАКОЙ ТЕМЫ В ЕВЕНТАХ
         if (!categoryRepo.existsById(catId)) {
             throw new NotFoundException("Category with id %d does not exist");
@@ -38,6 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public OutputCategoryDto patchCategory(Long catId, InputCategoryDto inputCategoryDto) {
         if (categoryRepo.existsByName(inputCategoryDto.getName())) {
             throw new CategoryUniqueNameException("Name already exist");
@@ -50,6 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OutputCategoryDto> getAllCategories(Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
         return categoryRepo.findAll(pageable).stream()
@@ -58,6 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OutputCategoryDto getCategoryById(Long catId) {
         Category category = categoryRepo.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id %d does not exist"));

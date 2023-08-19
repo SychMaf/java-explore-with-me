@@ -1,6 +1,7 @@
 package ru.practicum.events.service;
 
 import ru.practicum.events.dto.*;
+import ru.practicum.requests.dto.OutputRequestDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +17,7 @@ public interface EventsService {
 
     List<FullOutputEventDto> getFullInformationEvents(List<Long> users,
                                                       List<String> states,
-                                                      List<Long> categories,
+                                                      List<Integer> categories,
                                                       LocalDateTime rangeStart,
                                                       LocalDateTime rangeEnd,
                                                       Integer from,

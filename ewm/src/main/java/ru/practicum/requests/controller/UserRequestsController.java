@@ -41,4 +41,12 @@ public class UserRequestsController {
         return requestService.repealRequest(userId, requestId);
     }
 
+    @GetMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public List<OutputRequestDto> userParticipatesInEvent(@PathVariable Long userId,
+                                                    @PathVariable Long eventId) {
+        log.trace("CONTROLLER: request to find event were user participated with id: {}", userId);
+        return requestService.userParticipatesInEvent(userId, eventId);
+    }
+
 }

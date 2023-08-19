@@ -2,7 +2,6 @@ package ru.practicum.events.repo;
 
 import org.springframework.data.jpa.domain.Specification;
 import ru.practicum.events.model.Event;
-import ru.practicum.events.model.State;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -11,6 +10,7 @@ import javax.persistence.criteria.Root;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class EventSpecification implements Specification<Event> {
     private final EventCriteria criteria;
@@ -25,8 +25,8 @@ public class EventSpecification implements Specification<Event> {
     @Override
     public Predicate toPredicate(Root<Event> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         if (criteria.getText() != null) {
-            Predicate annotation = criteriaBuilder.like(criteriaBuilder.lower(root.get("annotation")), "%" + criteria.getText().toLowerCase() + "%");
-            Predicate description = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + criteria.getText().toLowerCase() + "%");
+            Predicate annotation = criteriaBuilder.like(criteriaBuilder.lower(root.get("annotation")), contains(criteria.getText()));
+            Predicate description = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), contains(criteria.getText()));
             Predicate combination = criteriaBuilder.or(annotation, description);
             this.predicateList.add(combination);
         }
@@ -34,6 +34,11 @@ public class EventSpecification implements Specification<Event> {
         if (criteria.getCategories() != null) {
             Predicate category = root.get("category").in(criteria.getCategories());
             this.predicateList.add(category);
+        }
+
+        if (criteria.getUsers() != null) {
+            Predicate users = root.get("initiator").in(criteria.getUsers());
+            this.predicateList.add(users);
         }
 
         if (criteria.getPaid() != null) {
@@ -51,9 +56,12 @@ public class EventSpecification implements Specification<Event> {
             this.predicateList.add(end);
         }
 
-        this.predicateList.add(root.get("state").in(State.PUBLISHED));
+        if (criteria.getStates() != null) {
+            Predicate states = root.get("state").in(criteria.getStates());
+            this.predicateList.add(states);
+        }
 
-        return query.where(criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()])))
+        return query.where(criteriaBuilder.and(predicateList.toArray(new Predicate[0])))
                 .orderBy(criteriaBuilder.desc(root.get("eventDate")))
                 .getRestriction();
     }

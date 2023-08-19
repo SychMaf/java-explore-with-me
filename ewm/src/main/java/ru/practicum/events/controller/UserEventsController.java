@@ -9,6 +9,7 @@ import ru.practicum.events.dto.InputEventDto;
 import ru.practicum.events.dto.ShortOutputEventDto;
 import ru.practicum.events.dto.UpdateUserEventDto;
 import ru.practicum.events.service.EventsService;
+import ru.practicum.requests.dto.OutputRequestDto;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -54,6 +55,7 @@ public class UserEventsController {
         log.trace("CONTROLLER: request to update event: {}", updateUserEventDto);
         return eventsService.patchEvent(userId, eventId, updateUserEventDto);
     }
+
 
     //ДВА ПОИНТА НА РЕКВЕСТЫ!!!
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.exceptions.ConflictException;
 import ru.practicum.exception.exceptions.NotFoundException;
 import ru.practicum.user.dto.InputUserDto;
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
 
     @Override
+    @Transactional
     public OutputUserDto saveUser(InputUserDto inputUserDto) {
         if (userRepo.existsByEmail(inputUserDto.getEmail())) {
             throw new ConflictException("Email already used");
@@ -28,6 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OutputUserDto> getUsers(List<Long> ids, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
         return userRepo.findAllByIdIn(ids, pageable).stream()
@@ -36,6 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long userId) {
         if (!userRepo.existsById(userId)) {
             throw new NotFoundException("User with id %d does not exist");

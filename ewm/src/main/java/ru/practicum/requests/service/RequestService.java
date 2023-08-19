@@ -10,4 +10,6 @@ public interface RequestService {
     List<OutputRequestDto> findUserRequests(Long userId);
 
     OutputRequestDto repealRequest(Long userId, Long requestId);
+
+    List<OutputRequestDto> userParticipatesInEvent(Long userId, Long eventId);
 }

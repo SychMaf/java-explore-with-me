@@ -65,4 +65,13 @@ public class RequestServiceImpl implements RequestService {
         patchRequest.setStatus(RequestStatus.CANCELED);
         return RequestMapper.requestToOutputRequestDto(requestRepo.save(patchRequest));
     }
+
+    @Override
+    @Transactional
+    public List<OutputRequestDto> userParticipatesInEvent(Long userId, Long eventId) {
+        List<Request> requests = requestRepo.findAllByEvent_IdAndEvent_Initiator_Id(userId, eventId);
+        return requests.stream()
+                .map(RequestMapper::requestToOutputRequestDto)
+                .collect(Collectors.toList());
+    }
 }

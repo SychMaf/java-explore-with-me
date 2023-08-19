@@ -3,7 +3,6 @@ package ru.practicum.events.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
@@ -13,7 +12,10 @@ import ru.practicum.events.model.AdminUpdateState;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
 import ru.practicum.events.model.UserUpdateState;
-import ru.practicum.events.repo.*;
+import ru.practicum.events.repo.EventCriteria;
+import ru.practicum.events.repo.EventRepo;
+import ru.practicum.events.repo.EventSpecification;
+import ru.practicum.events.repo.SortParam;
 import ru.practicum.exception.exceptions.NotFoundException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
@@ -38,6 +40,7 @@ public class EventServiceImpl implements EventsService {
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
         Event event = EventMapper.InputEventDtoToEvent(inputEventDto, user, category);
         event.setState(State.PENDING);
+        //event.setConfirmedRequest(0L);
         Event saveEvent = eventRepo.save(event);
         return EventMapper.eventToFullOutputEventDto(saveEvent);
     }
@@ -94,11 +97,32 @@ public class EventServiceImpl implements EventsService {
     }
 
     @Override
-    public List<FullOutputEventDto> getFullInformationEvents(List<Long> users, List<String> states, List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        return null;
+    @Transactional(readOnly = true)
+    public List<FullOutputEventDto> getFullInformationEvents(List<Long> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
+        Pageable pageable = PageRequest.of(from / size, size);
+        List<State> convertStates;
+        try {
+            convertStates = states.stream()
+                    .map(State::valueOf)
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException();
+        }
+        EventCriteria criteria = EventCriteria.builder()
+                .users(users)
+                .states(convertStates)
+                .categories(categories)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .build();
+        EventSpecification eventSpecification = new EventSpecification(criteria);
+        return eventRepo.findAll(eventSpecification, pageable).stream()
+                .map(EventMapper::eventToFullOutputEventDto)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public FullOutputEventDto adminPatchEvent(Long eventId, UpdateUserEventDto updateUserEventDto) {
         Event patchEvent = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
@@ -113,6 +137,7 @@ public class EventServiceImpl implements EventsService {
             switch (updateState) {
                 case PUBLISH_EVENT:
                     patchState = State.PUBLISHED;
+                    patchEvent.setPublishedOn(LocalDateTime.now());
                     break;
                 case CANCEL_EVENT:
                     patchState = State.CANCELED;
@@ -123,13 +148,14 @@ public class EventServiceImpl implements EventsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
-        List<Event> all = eventRepo.findAll();
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
         Pageable pageable = PageRequest.of(from / size, size);
         EventCriteria criteria = EventCriteria.builder()
+                .states(List.of(State.PUBLISHED))
                 .text(text)
                 .categories(categories)
                 .rangeEnd(rangeEnd)
@@ -138,14 +164,15 @@ public class EventServiceImpl implements EventsService {
                 .sortParam(SortParam.valueOf(sort))
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-
         return eventRepo.findAll(eventSpecification, pageable).stream()
                 .map(EventMapper::eventToShortOutputDto)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public FullOutputEventDto getEventById(Long id) {
-        return null;
+        return EventMapper.eventToFullOutputEventDto(eventRepo.findPublishedEventById(id)
+                .orElseThrow(() -> new NotFoundException("User dont have events with this id")));
     }
 }
