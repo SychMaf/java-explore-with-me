@@ -18,4 +18,6 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
     Optional<Event> findAllByIdAndInitiator_Id(Long id, Long userId);
 
     Optional<Event> findAllByIdAndState(Long eventId, State state);
+
+    List<Event> findAllByIdIn(List<Long> ids);
 }

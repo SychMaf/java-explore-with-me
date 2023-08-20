@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.requests.dto.InputUpdateStatusRequestDto;
 import ru.practicum.requests.dto.OutputRequestDto;
+import ru.practicum.requests.dto.OutputUpdateStatusRequestsDto;
 import ru.practicum.requests.service.RequestService;
 
 import java.util.List;
@@ -44,9 +46,19 @@ public class UserRequestsController {
     @GetMapping("/{userId}/events/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
     public List<OutputRequestDto> userParticipatesInEvent(@PathVariable Long userId,
-                                                    @PathVariable Long eventId) {
+                                                          @PathVariable Long eventId) {
         log.trace("CONTROLLER: request to find event were user participated with id: {}", userId);
         return requestService.userParticipatesInEvent(userId, eventId);
     }
+
+    @PatchMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
+    public OutputUpdateStatusRequestsDto changeRequestStatus(@PathVariable Long userId,
+                                                             @PathVariable Long eventId,
+                                                             @RequestBody InputUpdateStatusRequestDto updateState) {
+        log.trace("CONTROLLER: request to change requests state: {}", updateState);
+        return requestService.changeRequestStatus(userId, eventId, updateState);
+    }
+
 
 }
