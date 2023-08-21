@@ -29,13 +29,21 @@ public class UserServiceImpl implements UserService {
         return UserDtoMapper.toOutputUserDto(userRepo.save(UserDtoMapper.toUser(inputUserDto)));
     }
 
+
+    //Написать поиск по спецификации
     @Override
     @Transactional(readOnly = true)
     public List<OutputUserDto> getUsers(List<Long> ids, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        return userRepo.findAllByIdIn(ids, pageable).stream()
-                .map(UserDtoMapper::toOutputUserDto)
-                .collect(Collectors.toList());
+        if (ids != null) {
+            return userRepo.findAllByIdIn(ids, pageable).stream()
+                    .map(UserDtoMapper::toOutputUserDto)
+                    .collect(Collectors.toList());
+        } else {
+            return userRepo.findAll(pageable).stream()
+                    .map(UserDtoMapper::toOutputUserDto)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override

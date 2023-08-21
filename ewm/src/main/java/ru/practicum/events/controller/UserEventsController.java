@@ -3,6 +3,7 @@ package ru.practicum.events.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.events.dto.FullOutputEventDto;
 import ru.practicum.events.dto.InputEventDto;
@@ -10,7 +11,9 @@ import ru.practicum.events.dto.ShortOutputEventDto;
 import ru.practicum.events.dto.UpdateUserEventDto;
 import ru.practicum.events.service.EventsService;
 import ru.practicum.requests.dto.OutputRequestDto;
+import ru.practicum.validator.EventStartBefore;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
+@Validated
 @Slf4j
 public class UserEventsController {
     private final EventsService eventsService;
@@ -34,7 +38,7 @@ public class UserEventsController {
     @PostMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.CREATED)
     public FullOutputEventDto addEvent(@PathVariable Long userId,
-                                       @RequestBody InputEventDto inputEventDto) {
+                                       @RequestBody @EventStartBefore(min = 2) @Valid InputEventDto inputEventDto) {
         log.trace("CONTROLLER: request to create user: {}", inputEventDto);
         return eventsService.addEvent(userId, inputEventDto);
     }
@@ -51,12 +55,8 @@ public class UserEventsController {
     @ResponseStatus(HttpStatus.OK)
     public FullOutputEventDto patchEvent(@PathVariable Long userId,
                                          @PathVariable Long eventId,
-                                         @RequestBody UpdateUserEventDto updateUserEventDto) {
+                                         @RequestBody @EventStartBefore(min = 2) @Valid UpdateUserEventDto updateUserEventDto) {
         log.trace("CONTROLLER: request to update event: {}", updateUserEventDto);
         return eventsService.patchEvent(userId, eventId, updateUserEventDto);
     }
-
-
-    //ДВА ПОИНТА НА РЕКВЕСТЫ!!!
-
 }

@@ -9,10 +9,10 @@ import javax.validation.constraints.Size;
 @Data
 public class InputUserDto {
     @NotBlank
-    @Size(min = 2)
-    @Size(max = 250)
+    @Size(min = 2, max = 250)
     private String name;
-    @NotBlank
     @Email
+    @NotBlank
+    @Size(min = 6, max = 254)
     private String email;
 }

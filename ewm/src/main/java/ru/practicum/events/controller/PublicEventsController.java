@@ -2,6 +2,8 @@ package ru.practicum.events.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +25,15 @@ public class PublicEventsController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ShortOutputEventDto> searchEventsWithParam(@RequestParam String text,
-                                                           @RequestParam List<Integer> categories,
-                                                           @RequestParam Boolean paid,
-                                                           @RequestParam(name = "rangeStart")
+    public List<ShortOutputEventDto> searchEventsWithParam(@RequestParam(required = false) String text,
+                                                           @RequestParam(required = false) List<Integer> categories,
+                                                           @RequestParam(required = false) Boolean paid,
+                                                           @RequestParam(name = "rangeStart", required = false)
                                                            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-                                                           @RequestParam(name = "rangeEnd")
+                                                           @RequestParam(name = "rangeEnd", required = false)
                                                            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-                                                           @RequestParam Boolean onlyAvailable,
-                                                           @RequestParam String sort,
+                                                           @RequestParam(required = false) Boolean onlyAvailable,
+                                                           @RequestParam(required = false) String sort,
                                                            @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
                                                            @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
         log.trace("PUBLIC CONTROLLER: request to find events with a lot params...");

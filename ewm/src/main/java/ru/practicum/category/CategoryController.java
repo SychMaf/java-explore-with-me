@@ -9,6 +9,7 @@ import ru.practicum.category.dto.InputCategoryDto;
 import ru.practicum.category.dto.OutputCategoryDto;
 import ru.practicum.category.service.CategoryService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -21,7 +22,7 @@ public class CategoryController {
 
     @PostMapping("/admin/categories")
     @ResponseStatus(HttpStatus.CREATED) //201
-    public OutputCategoryDto createCategory(@RequestBody InputCategoryDto inputCategoryDto) {
+    public OutputCategoryDto createCategory(@RequestBody @Valid InputCategoryDto inputCategoryDto) {
         log.trace("CONTROLLER: request to create category: {}", inputCategoryDto);
         return categoryService.createCategory(inputCategoryDto);
     }
@@ -36,7 +37,7 @@ public class CategoryController {
     @PatchMapping("/admin/categories/{catId}")
     @ResponseStatus(HttpStatus.OK)  //200
     public OutputCategoryDto patchCategory(@PathVariable Long catId,
-                                           @RequestBody InputCategoryDto inputCategoryDto) {
+                                           @RequestBody @Valid InputCategoryDto inputCategoryDto) {
         log.trace("CONTROLLER: request to update category: {}", inputCategoryDto);
         return categoryService.patchCategory(catId, inputCategoryDto);
     }

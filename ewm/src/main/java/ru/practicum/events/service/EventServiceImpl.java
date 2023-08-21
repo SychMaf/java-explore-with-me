@@ -17,11 +17,14 @@ import ru.practicum.events.repo.EventRepo;
 import ru.practicum.events.repo.EventSpecification;
 import ru.practicum.events.repo.SortParam;
 import ru.practicum.exception.exceptions.NotFoundException;
+import ru.practicum.exception.exceptions.TimeException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
 
+import javax.xml.bind.ValidationException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,7 +43,7 @@ public class EventServiceImpl implements EventsService {
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
         Event event = EventMapper.InputEventDtoToEvent(inputEventDto, user, category);
         event.setState(State.PENDING);
-        //event.setConfirmedRequest(0L);
+        event.setConfirmedRequest(0L);
         Event saveEvent = eventRepo.save(event);
         return EventMapper.eventToFullOutputEventDto(saveEvent);
     }
@@ -99,18 +102,26 @@ public class EventServiceImpl implements EventsService {
     @Override
     @Transactional(readOnly = true)
     public List<FullOutputEventDto> getFullInformationEvents(List<Long> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new TimeException("Start time can not be after End time");
+        }
+        if (rangeStart == null && rangeEnd == null) {
+            rangeStart = LocalDateTime.now();
+        }
         Pageable pageable = PageRequest.of(from / size, size);
-        List<State> convertStates;
+        List<State> convertStates = List.of();
         try {
-            convertStates = states.stream()
-                    .map(State::valueOf)
-                    .collect(Collectors.toList());
+            if (states != null) {
+                convertStates = states.stream()
+                        .map(State::valueOf)
+                        .collect(Collectors.toList());
+            }
         } catch (IllegalArgumentException e) {
             throw new RuntimeException();
         }
         EventCriteria criteria = EventCriteria.builder()
                 .users(users)
-                .states(convertStates)
+                .states(!convertStates.isEmpty() ? convertStates : null)
                 .categories(categories)
                 .rangeStart(rangeStart)
                 .rangeEnd(rangeEnd)
@@ -150,6 +161,9 @@ public class EventServiceImpl implements EventsService {
     @Override
     @Transactional(readOnly = true)
     public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new TimeException("Start time can not be after End time");
+        }
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
@@ -161,7 +175,7 @@ public class EventServiceImpl implements EventsService {
                 .rangeEnd(rangeEnd)
                 .rangeStart(rangeStart)
                 .onlyAvailable(onlyAvailable)
-                .sortParam(SortParam.valueOf(sort))
+                .sortParam(sort != null ? SortParam.valueOf(sort) : null)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
         return eventRepo.findAll(eventSpecification, pageable).stream()

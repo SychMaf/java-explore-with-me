@@ -13,7 +13,7 @@ public class CompilationMapper {
 
     public Compilation InputCompilationDtotoCompilation(InputCompilationDto inputCompilationDto, List<Event> events) {
         return Compilation.builder()
-                .pinned(inputCompilationDto.getPinned())
+                .pinned(inputCompilationDto.getPinned() != null ? inputCompilationDto.getPinned() : false)
                 .title(inputCompilationDto.getTitle())
                 .events(events)
                 .build();

@@ -40,7 +40,8 @@ public class RequestServiceImpl implements RequestService {
                 .created(LocalDateTime.now())
                 .event(event)
                 .requester(user)
-                .status(RequestStatus.PENDING)
+                .status(event.getParticipantLimit() == 0 ?
+                        RequestStatus.CONFIRMED : RequestStatus.PENDING)
                 .build();
         return RequestMapper.requestToOutputRequestDto(requestRepo.save(request));
     }
@@ -100,7 +101,7 @@ public class RequestServiceImpl implements RequestService {
         Integer limit = event.getParticipantLimit();
         Integer alreadyConfirmed = requestRepo.findConfirmedRequestsOnEvent(eventId).size();
         if (limit <= alreadyConfirmed) {
-            throw new RuntimeException("В этом зале будет слишком тесно для нас дружок-пирожок");
+            throw new RuntimeException("full");
         }
         if (updateState.getStatus().equals(RequestStatus.REJECTED)) {
             queryRequests.forEach(request -> request.setStatus(RequestStatus.REJECTED));
@@ -113,12 +114,14 @@ public class RequestServiceImpl implements RequestService {
                 iteration.setStatus(RequestStatus.CONFIRMED);
                 result.add(iteration);
                 queryRequests.remove(queryRequests.get(i));
+                event.setConfirmedRequest((long) i+1);
             }
             result.addAll(queryRequests.stream()
                     .peek(request -> request.setStatus(RequestStatus.REJECTED))
                     .collect(Collectors.toList())
             );
             List<Request> saved = requestRepo.saveAll(result);
+            eventRepo.save(event);
             return RequestMapper.requestListToUpdateStateList(saved);
         }
     }

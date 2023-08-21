@@ -43,9 +43,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public OutputCategoryDto patchCategory(Long catId, InputCategoryDto inputCategoryDto) {
-        if (categoryRepo.existsByName(inputCategoryDto.getName())) {
-            throw new CategoryUniqueNameException("Name already exist");
-        }
         if (!categoryRepo.existsById(catId)) {
             throw new NotFoundException("Category with id %d does not exist");
         }

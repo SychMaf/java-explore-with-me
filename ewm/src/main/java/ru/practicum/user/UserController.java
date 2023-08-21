@@ -4,11 +4,13 @@ package ru.practicum.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.user.dto.InputUserDto;
 import ru.practicum.user.dto.OutputUserDto;
 import ru.practicum.user.service.UserService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
@@ -21,14 +23,14 @@ public class UserController {
 
     @PostMapping("/admin/users")
     @ResponseStatus(HttpStatus.CREATED) //201
-    public OutputUserDto saveUser(@RequestBody InputUserDto inputUserDto) {
+    public OutputUserDto saveUser(@RequestBody @Valid InputUserDto inputUserDto) {
         log.trace("CONTROLLER: request to create user: {}", inputUserDto);
         return userService.saveUser(inputUserDto);
     }
 
     @GetMapping("/admin/users")
     @ResponseStatus(HttpStatus.OK)  //200
-    public List<OutputUserDto> getUsers(@RequestParam List<Long> ids,
+    public List<OutputUserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                         @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
                                         @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
         log.trace("CONTROLLER: request to find users");
