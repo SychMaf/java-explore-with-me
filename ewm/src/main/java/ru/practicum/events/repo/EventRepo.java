@@ -3,6 +3,7 @@ package ru.practicum.events.repo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import ru.practicum.category.model.Category;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
 
@@ -20,4 +21,6 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
     Optional<Event> findAllByIdAndState(Long eventId, State state);
 
     List<Event> findAllByIdIn(List<Long> ids);
+
+    Boolean existsByCategory_Id(Long categoryId);
 }

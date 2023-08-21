@@ -55,7 +55,7 @@ public class UserRequestsController {
     @ResponseStatus(HttpStatus.OK)
     public OutputUpdateStatusRequestsDto changeRequestStatus(@PathVariable Long userId,
                                                              @PathVariable Long eventId,
-                                                             @RequestBody InputUpdateStatusRequestDto updateState) {
+                                                             @RequestBody(required = false) InputUpdateStatusRequestDto updateState) {
         log.trace("CONTROLLER: request to change requests state: {}", updateState);
         return requestService.changeRequestStatus(userId, eventId, updateState);
     }

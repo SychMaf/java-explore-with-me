@@ -10,6 +10,8 @@ import ru.practicum.category.dto.InputCategoryDto;
 import ru.practicum.category.dto.OutputCategoryDto;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepo;
+import ru.practicum.events.repo.EventRepo;
+import ru.practicum.exception.exceptions.CategoryDeleteException;
 import ru.practicum.exception.exceptions.CategoryUniqueNameException;
 import ru.practicum.exception.exceptions.NotFoundException;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
+    private final EventRepo eventRepo;
     private final CategoryRepo categoryRepo;
 
     @Override
@@ -33,9 +36,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public void deleteCategory(Long catId) { //ПРОПИСАТЬ ЧЕК НА ПРОВЕРКУ НАЛИЧИЯ ТАКОЙ ТЕМЫ В ЕВЕНТАХ
+    public void deleteCategory(Long catId) {
         if (!categoryRepo.existsById(catId)) {
             throw new NotFoundException("Category with id %d does not exist");
+        }
+        if (eventRepo.existsByCategory_Id(catId)) {
+            throw new CategoryDeleteException("Category with id used in Events");
         }
         categoryRepo.deleteById(catId);
     }
@@ -45,6 +51,9 @@ public class CategoryServiceImpl implements CategoryService {
     public OutputCategoryDto patchCategory(Long catId, InputCategoryDto inputCategoryDto) {
         if (!categoryRepo.existsById(catId)) {
             throw new NotFoundException("Category with id %d does not exist");
+        }
+        if (categoryRepo.existsByNameAndIdNot(inputCategoryDto.getName(), catId)) {
+            throw new CategoryUniqueNameException("Name already exist");
         }
         return CategoryDtoMapper.toOutputCategoryDto(
                 CategoryDtoMapper.updateCategory(inputCategoryDto, catId));

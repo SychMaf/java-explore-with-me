@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.events.model.Event;
+import ru.practicum.events.model.State;
 import ru.practicum.events.repo.EventRepo;
 import ru.practicum.exception.exceptions.NotFoundException;
+import ru.practicum.exception.exceptions.RequestCreatedConflictException;
 import ru.practicum.requests.dto.InputUpdateStatusRequestDto;
 import ru.practicum.requests.dto.OutputRequestDto;
 import ru.practicum.requests.dto.OutputUpdateStatusRequestsDto;
@@ -36,13 +38,29 @@ public class RequestServiceImpl implements RequestService {
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
+        if (requestRepo.existsAllByRequester_IdAndEvent_Id(userId, eventId)) {
+            throw new RequestCreatedConflictException("User Already create Request on this Event");
+        }
+        if (event.getInitiator().getId().equals(userId)) {
+            throw new RequestCreatedConflictException("Event initiator cant send request on this");
+        }
+        if (!event.getState().equals(State.PUBLISHED)) {
+            throw new RequestCreatedConflictException("You cant create request in not PUBLISHED Event");
+        }
+        if (event.getParticipantLimit() <= event.getConfirmedRequest() && event.getParticipantLimit() != 0) {
+            throw new RequestCreatedConflictException("Event dont have vacancies to apply");
+        }
         Request request = Request.builder()
                 .created(LocalDateTime.now())
                 .event(event)
                 .requester(user)
-                .status(event.getParticipantLimit() == 0 ?
+                .status(event.getParticipantLimit() == 0 || !event.getRequestModeration() ?
                         RequestStatus.CONFIRMED : RequestStatus.PENDING)
                 .build();
+        if (request.getStatus().equals(RequestStatus.CONFIRMED)) {
+            event.setConfirmedRequest(event.getConfirmedRequest() + 1);
+            eventRepo.save(event);
+        }
         return RequestMapper.requestToOutputRequestDto(requestRepo.save(request));
     }
 
@@ -94,14 +112,14 @@ public class RequestServiceImpl implements RequestService {
         }
         Event event = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
-        List<Request> queryRequests = requestRepo.findAllByIdIn(updateState.getRequestIds());
-        if (!queryRequests.stream().allMatch(request -> request.getStatus().equals(RequestStatus.PENDING))) {
-            throw new RuntimeException("Not all given requests have state PENDING");
-        }
         Integer limit = event.getParticipantLimit();
         Integer alreadyConfirmed = requestRepo.findConfirmedRequestsOnEvent(eventId).size();
         if (limit <= alreadyConfirmed) {
-            throw new RuntimeException("full");
+            throw new RequestCreatedConflictException("Event dont have vacancies to apply");
+        }
+        List<Request> queryRequests = requestRepo.findAllByIdIn(updateState.getRequestIds());
+        if (!queryRequests.stream().allMatch(request -> request.getStatus().equals(RequestStatus.PENDING))) {
+            throw new RequestCreatedConflictException("Not all given requests have state PENDING");
         }
         if (updateState.getStatus().equals(RequestStatus.REJECTED)) {
             queryRequests.forEach(request -> request.setStatus(RequestStatus.REJECTED));
@@ -109,12 +127,12 @@ public class RequestServiceImpl implements RequestService {
             return RequestMapper.requestListToUpdateStateList(saved);
         } else {
             List<Request> result = new ArrayList<>();
-            for (int i = 0; i < limit-alreadyConfirmed && i <= queryRequests.size() - 1; i++) {
+            for (int i = 0; i < limit - alreadyConfirmed && i <= queryRequests.size() - 1; i++) {
                 Request iteration = queryRequests.get(i);
                 iteration.setStatus(RequestStatus.CONFIRMED);
                 result.add(iteration);
                 queryRequests.remove(queryRequests.get(i));
-                event.setConfirmedRequest((long) i+1);
+                event.setConfirmedRequest((long) i + 1);
             }
             result.addAll(queryRequests.stream()
                     .peek(request -> request.setStatus(RequestStatus.REJECTED))

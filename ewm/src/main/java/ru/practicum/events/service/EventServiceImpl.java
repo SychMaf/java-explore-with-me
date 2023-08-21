@@ -16,6 +16,8 @@ import ru.practicum.events.repo.EventCriteria;
 import ru.practicum.events.repo.EventRepo;
 import ru.practicum.events.repo.EventSpecification;
 import ru.practicum.events.repo.SortParam;
+import ru.practicum.exception.exceptions.EventPatchConflictException;
+import ru.practicum.exception.exceptions.EventStateConflictException;
 import ru.practicum.exception.exceptions.NotFoundException;
 import ru.practicum.exception.exceptions.TimeException;
 import ru.practicum.user.model.User;
@@ -79,6 +81,9 @@ public class EventServiceImpl implements EventsService {
         }
         Event patchEvent = eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
+        if (!(patchEvent.getState().equals(State.PENDING) || patchEvent.getState().equals(State.REJECT_EVENT))) {
+            throw new EventPatchConflictException("This Event not in normal?(PENDING/REJECT_EVENT) state");
+        }
         Category patchCategory = patchEvent.getCategory();
         if (updateUserEventDto.getCategory() != null) {
             patchCategory = categoryRepo.findById(updateUserEventDto.getCategory())
@@ -137,6 +142,9 @@ public class EventServiceImpl implements EventsService {
     public FullOutputEventDto adminPatchEvent(Long eventId, UpdateUserEventDto updateUserEventDto) {
         Event patchEvent = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
+        if (patchEvent.getState().equals(State.PUBLISHED) || patchEvent.getState().equals(State.REJECT_EVENT)) {
+            throw new EventStateConflictException("Attempt patch PUBLISHED/REJECT_EVENT Event");
+        }
         Category patchCategory = patchEvent.getCategory();
         if (updateUserEventDto.getCategory() != null) {
             patchCategory = categoryRepo.findById(updateUserEventDto.getCategory())
@@ -150,8 +158,8 @@ public class EventServiceImpl implements EventsService {
                     patchState = State.PUBLISHED;
                     patchEvent.setPublishedOn(LocalDateTime.now());
                     break;
-                case CANCEL_EVENT:
-                    patchState = State.CANCELED;
+                case REJECT_EVENT:
+                    patchState = State.REJECT_EVENT;
             }
         }
         patchEvent = eventRepo.save(EventMapper.updateEventUser(updateUserEventDto, patchEvent, patchCategory, patchState));

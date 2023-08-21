@@ -4,14 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.exception.exceptions.ConflictException;
-import ru.practicum.exception.exceptions.NotFoundException;
-import ru.practicum.exception.exceptions.TimeException;
+import ru.practicum.exception.exceptions.*;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -20,10 +16,46 @@ import javax.validation.ValidationException;
 @Slf4j
 public class ErrorHandler {
 
-    @ExceptionHandler   //409
-    public ResponseEntity<Object> handleEmailException(ConflictException e) {
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleEmailException(ConflictException e) {
         log.error(e.getMessage(), e);
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleDeleteCategoryException(CategoryDeleteException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleCategoryNameException(CategoryUniqueNameException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleEventStateConflictException(EventStateConflictException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleRequestCreatedConflictException(RequestCreatedConflictException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT) //409
+    public ErrorResponse handleEventPatchConflictException(EventPatchConflictException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
