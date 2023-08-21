@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.events.dto.FullOutputEventDto;
-import ru.practicum.events.dto.UpdateUserEventDto;
+import ru.practicum.events.dto.UpdateEventDto;
 import ru.practicum.events.service.EventsService;
-import ru.practicum.validator.EventStartBefore;
+import ru.practicum.validator.annotation.EventStartBefore;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -29,7 +29,7 @@ public class AdminEventsController {
     @ResponseStatus(HttpStatus.OK)
     public List<FullOutputEventDto> getFullInformationEvents(@RequestParam(required = false) List<Long> users,
                                                              @RequestParam(required = false) List<String> states,
-                                                             @RequestParam (required = false)List<Integer> categories,
+                                                             @RequestParam(required = false) List<Integer> categories,
                                                              @RequestParam(name = "rangeStart", required = false)
                                                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                                              @RequestParam(name = "rangeEnd", required = false)
@@ -43,8 +43,8 @@ public class AdminEventsController {
     @PatchMapping("/events/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public FullOutputEventDto adminPatchEvent(@PathVariable Long eventId,
-                                              @RequestBody @EventStartBefore @Valid UpdateUserEventDto updateUserEventDto) {
-        log.trace("CONTROLLER: request to update category: {}", updateUserEventDto);
-        return eventsService.adminPatchEvent(eventId, updateUserEventDto);
+                                              @RequestBody @EventStartBefore @Valid UpdateEventDto updateEventDto) {
+        log.trace("ADMIN CONTROLLER: request to update category: {}", updateEventDto);
+        return eventsService.adminPatchEvent(eventId, updateEventDto);
     }
 }

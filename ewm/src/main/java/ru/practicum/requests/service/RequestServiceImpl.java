@@ -17,6 +17,8 @@ import ru.practicum.requests.model.RequestStatus;
 import ru.practicum.requests.repo.RequestRepo;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
+import ru.practicum.validator.EventValidator;
+import ru.practicum.validator.UserValidator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ public class RequestServiceImpl implements RequestService {
     private final UserRepo userRepo;
 
     @Override
-
     @Transactional
     public OutputRequestDto createRequest(Long userId, Long eventId) {
         Event event = eventRepo.findById(eventId)
@@ -67,11 +68,8 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional(readOnly = true)
     public List<OutputRequestDto> findUserRequests(Long userId) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
-        List<Request> requests = requestRepo.findAllByRequester_Id(userId);
-        return requests.stream()
+        UserValidator.checkUserExist(userRepo, userId);
+        return requestRepo.findAllByRequester_Id(userId).stream()
                 .map(RequestMapper::requestToOutputRequestDto)
                 .collect(Collectors.toList());
     }
@@ -79,42 +77,31 @@ public class RequestServiceImpl implements RequestService {
     @Override
     @Transactional
     public OutputRequestDto repealRequest(Long userId, Long requestId) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
+        UserValidator.checkUserExist(userRepo, userId);
         Request patchRequest = requestRepo.findAllByRequester_IdAndId(userId, requestId)
-                .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
+                .orElseThrow(() -> new NotFoundException("That request does not exist"));
         patchRequest.setStatus(RequestStatus.CANCELED);
         return RequestMapper.requestToOutputRequestDto(requestRepo.save(patchRequest));
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OutputRequestDto> userParticipatesInEvent(Long userId, Long eventId) {
-        Event event = eventRepo.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
-        Long testUserId = user.getId();
-        List<Request> all = requestRepo.findAll();
-        List<Request> requests = requestRepo.findAllByEvent(event);
-        return requests.stream()
+        EventValidator.checkEventExist(eventRepo, eventId);
+        UserValidator.checkUserExist(userRepo, userId);
+        return requestRepo.findAllByEvent_Id(eventId).stream()
                 .map(RequestMapper::requestToOutputRequestDto)
                 .collect(Collectors.toList());
     }
 
-    //ЭТО НАДО БУДЕТ ЖБ УЛУЧШИТЬ
     @Override
     @Transactional
     public OutputUpdateStatusRequestsDto changeRequestStatus(Long userId, Long eventId, InputUpdateStatusRequestDto updateState) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
+        UserValidator.checkUserExist(userRepo, userId);
         Event event = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
-        Integer limit = event.getParticipantLimit();
         Integer alreadyConfirmed = requestRepo.findConfirmedRequestsOnEvent(eventId).size();
-        if (limit <= alreadyConfirmed) {
+        if (event.getParticipantLimit() <= alreadyConfirmed) {
             throw new RequestCreatedConflictException("Event dont have vacancies to apply");
         }
         List<Request> queryRequests = requestRepo.findAllByIdIn(updateState.getRequestIds());
@@ -127,20 +114,19 @@ public class RequestServiceImpl implements RequestService {
             return RequestMapper.requestListToUpdateStateList(saved);
         } else {
             List<Request> result = new ArrayList<>();
-            for (int i = 0; i < limit - alreadyConfirmed && i <= queryRequests.size() - 1; i++) {
+            for (int i = 0; i < event.getParticipantLimit() - alreadyConfirmed && i <= queryRequests.size() - 1; i++) {
                 Request iteration = queryRequests.get(i);
                 iteration.setStatus(RequestStatus.CONFIRMED);
                 result.add(iteration);
                 queryRequests.remove(queryRequests.get(i));
                 event.setConfirmedRequest((long) i + 1);
             }
+            eventRepo.save(event);
             result.addAll(queryRequests.stream()
                     .peek(request -> request.setStatus(RequestStatus.REJECTED))
                     .collect(Collectors.toList())
             );
-            List<Request> saved = requestRepo.saveAll(result);
-            eventRepo.save(event);
-            return RequestMapper.requestListToUpdateStateList(saved);
+            return RequestMapper.requestListToUpdateStateList(requestRepo.saveAll(result));
         }
     }
 }

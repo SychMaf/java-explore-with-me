@@ -18,7 +18,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT) //409
-    public ErrorResponse handleEmailException(ConflictException e) {
+    public ErrorResponse handleEmailException(UserEmailConflictException e) {
         log.error(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
@@ -74,7 +74,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST) //400
-    public ErrorResponse timeException(TimeException e) {
+    public ErrorResponse timeException(EventTimeException e) {
         log.error(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }

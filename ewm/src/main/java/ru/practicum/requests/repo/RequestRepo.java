@@ -1,11 +1,8 @@
 package ru.practicum.requests.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.practicum.events.model.Event;
-import ru.practicum.events.model.State;
 import ru.practicum.requests.model.Request;
 import ru.practicum.requests.model.RequestStatus;
-import ru.practicum.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +20,6 @@ public interface RequestRepo extends JpaRepository<Request, Long> {
 
     List<Request> findAllByIdIn(List<Long> id);
 
-    List<Request> findAllByEvent(Event event);
-
+    List<Request> findAllByEvent_Id(Long eventId);
     Boolean existsAllByRequester_IdAndEvent_Id(Long userId, Long eventId);
-
-    Boolean existsAllByEvent_InitiatorAndEvent_Id(User user, Long eventId);
-
-    List<Request> findAllByEvent_Initiator(User user);
 }

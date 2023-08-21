@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.compilation.dto.InputCompilationDto;
 import ru.practicum.compilation.dto.OutputCompilationDto;
 import ru.practicum.compilation.service.CompilationService;
-import ru.practicum.validator.ValidationGroups;
+import ru.practicum.validator.annotation.ValidationGroups;
 
 import javax.validation.Valid;
 

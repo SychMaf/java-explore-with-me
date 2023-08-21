@@ -5,22 +5,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.compilation.dto.CompilationMapper;
 import ru.practicum.compilation.dto.InputCompilationDto;
 import ru.practicum.compilation.dto.OutputCompilationDto;
 import ru.practicum.compilation.model.Compilation;
+import ru.practicum.compilation.repo.CompilationCriteria;
 import ru.practicum.compilation.repo.CompilationRepo;
+import ru.practicum.compilation.repo.CompilationSpecification;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.repo.EventRepo;
 import ru.practicum.exception.exceptions.NotFoundException;
+import ru.practicum.validator.CompilationValidator;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CompilationServiceImpl implements CompilationService{
+public class CompilationServiceImpl implements CompilationService {
     private final EventRepo eventRepo;
     private final CompilationRepo compilationRepo;
 
@@ -35,9 +37,7 @@ public class CompilationServiceImpl implements CompilationService{
     @Override
     @Transactional
     public void deleteCompilation(Long compId) {
-        if (!compilationRepo.existsById(compId)) {
-            throw new NotFoundException("Compilation with id %d does not exist");
-        }
+        CompilationValidator.checkCompilationExist(compilationRepo, compId);
         compilationRepo.deleteById(compId);
     }
 
@@ -62,14 +62,12 @@ public class CompilationServiceImpl implements CompilationService{
     @Transactional(readOnly = true)
     public List<OutputCompilationDto> searchCompilation(Boolean pinned, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        if (pinned != null) {
-            return compilationRepo.findAllByPinned(pinned, pageable).stream()
-                    .map(CompilationMapper::compilationToOutputCompilationDto)
-                    .collect(Collectors.toList());
-        } else {
-            return compilationRepo.findAll(pageable).stream()
-                    .map(CompilationMapper::compilationToOutputCompilationDto)
-                    .collect(Collectors.toList());
-        }
+        CompilationCriteria criteria = CompilationCriteria.builder()
+                .pinned(pinned)
+                .build();
+        CompilationSpecification compilationSpecification = new CompilationSpecification(criteria);
+        return compilationRepo.findAll(compilationSpecification, pageable).stream()
+                .map(CompilationMapper::compilationToOutputCompilationDto)
+                .collect(Collectors.toList());
     }
 }

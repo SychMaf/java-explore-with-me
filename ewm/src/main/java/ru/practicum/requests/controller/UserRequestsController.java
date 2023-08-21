@@ -47,7 +47,7 @@ public class UserRequestsController {
     @ResponseStatus(HttpStatus.OK)
     public List<OutputRequestDto> userParticipatesInEvent(@PathVariable Long userId,
                                                           @PathVariable Long eventId) {
-        log.trace("CONTROLLER: request to find event were user participated with id: {}", userId);
+        log.trace("REQUEST CONTROLLER: request to find event were user participated with id: {}", userId);
         return requestService.userParticipatesInEvent(userId, eventId);
     }
 
@@ -56,7 +56,7 @@ public class UserRequestsController {
     public OutputUpdateStatusRequestsDto changeRequestStatus(@PathVariable Long userId,
                                                              @PathVariable Long eventId,
                                                              @RequestBody(required = false) InputUpdateStatusRequestDto updateState) {
-        log.trace("CONTROLLER: request to change requests state: {}", updateState);
+        log.trace("REQUEST CONTROLLER: request to change requests state: {}", updateState);
         return requestService.changeRequestStatus(userId, eventId, updateState);
     }
 

@@ -1,10 +1,9 @@
-package ru.practicum.user;
+package ru.practicum.user.controller;
 
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.user.dto.InputUserDto;
 import ru.practicum.user.dto.OutputUserDto;
@@ -24,7 +23,7 @@ public class UserController {
     @PostMapping("/admin/users")
     @ResponseStatus(HttpStatus.CREATED) //201
     public OutputUserDto saveUser(@RequestBody @Valid InputUserDto inputUserDto) {
-        log.trace("CONTROLLER: request to create user: {}", inputUserDto);
+        log.trace("ADMIN CONTROLLER: request to create user: {}", inputUserDto);
         return userService.saveUser(inputUserDto);
     }
 
@@ -33,14 +32,14 @@ public class UserController {
     public List<OutputUserDto> getUsers(@RequestParam(required = false) List<Long> ids,
                                         @RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
                                         @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
-        log.trace("CONTROLLER: request to find users");
+        log.trace("ADMIN CONTROLLER: request to find users");
         return userService.getUsers(ids, from, size);
     }
 
     @DeleteMapping("/admin/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)  //204
     public void deleteUser(@PathVariable Long userId) {
-        log.trace("CONTROLLER: request to delete users");
+        log.trace("ADMIN CONTROLLER: request to delete users");
         userService.deleteUser(userId);
     }
 

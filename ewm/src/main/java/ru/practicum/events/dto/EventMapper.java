@@ -67,28 +67,28 @@ public class EventMapper {
                 .build();
     }
 
-    public Event updateEventUser(UpdateUserEventDto updateUserEventDto, Event event, Category category, State state) {
+    public Event updateEventUser(UpdateEventDto updateEventDto, Event event, Category category, State state) {
         return Event.builder()
-                .annotation(updateUserEventDto.getAnnotation() != null ?
-                        updateUserEventDto.getAnnotation() : event.getAnnotation())
+                .annotation(updateEventDto.getAnnotation() != null ?
+                        updateEventDto.getAnnotation() : event.getAnnotation())
                 .category(category)
-                .description(updateUserEventDto.getDescription() != null ?
-                        updateUserEventDto.getDescription() : event.getDescription())
-                .eventDate(updateUserEventDto.getEventDate() != null ?
-                        updateUserEventDto.getEventDate() : event.getEventDate())
-                .lon(updateUserEventDto.getLocation() != null ?
-                        updateUserEventDto.getLocation().getLon() : event.getLon())
-                .lat(updateUserEventDto.getLocation() != null ?
-                        updateUserEventDto.getLocation().getLat() : event.getLat())
-                .paid(updateUserEventDto.getPaid() != null ?
-                        updateUserEventDto.getPaid() : event.getPaid())
-                .participantLimit(updateUserEventDto.getParticipantLimit() != null ?
-                        updateUserEventDto.getParticipantLimit() : event.getParticipantLimit())
-                .requestModeration(updateUserEventDto.getRequestModeration() != null ?
-                        updateUserEventDto.getRequestModeration() : event.getRequestModeration())
+                .description(updateEventDto.getDescription() != null ?
+                        updateEventDto.getDescription() : event.getDescription())
+                .eventDate(updateEventDto.getEventDate() != null ?
+                        updateEventDto.getEventDate() : event.getEventDate())
+                .lon(updateEventDto.getLocation() != null ?
+                        updateEventDto.getLocation().getLon() : event.getLon())
+                .lat(updateEventDto.getLocation() != null ?
+                        updateEventDto.getLocation().getLat() : event.getLat())
+                .paid(updateEventDto.getPaid() != null ?
+                        updateEventDto.getPaid() : event.getPaid())
+                .participantLimit(updateEventDto.getParticipantLimit() != null ?
+                        updateEventDto.getParticipantLimit() : event.getParticipantLimit())
+                .requestModeration(updateEventDto.getRequestModeration() != null ?
+                        updateEventDto.getRequestModeration() : event.getRequestModeration())
                 .state(state)
-                .title(updateUserEventDto.getTitle() != null ?
-                        updateUserEventDto.getTitle() : event.getTitle())
+                .title(updateEventDto.getTitle() != null ?
+                        updateEventDto.getTitle() : event.getTitle())
                 .confirmedRequest(event.getConfirmedRequest())
                 .createdOn(event.getCreatedOn())
                 .id(event.getId())

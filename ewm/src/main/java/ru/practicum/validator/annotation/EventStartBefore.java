@@ -1,14 +1,14 @@
-package ru.practicum.validator;
+package ru.practicum.validator.annotation;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
 import java.lang.annotation.*;
 
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.CONSTRUCTOR, ElementType.PARAMETER, ElementType.TYPE_USE, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.PARAMETER, ElementType.TYPE_USE, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Constraint(
-        validatedBy = {EventStartValidator.class, CreateEventStartValidator.class}
+        validatedBy = {UpdateEventStartValidator.class, CreateEventStartValidator.class}
 )
 public @interface EventStartBefore {
     String message() default "{Cant create event in this time}";

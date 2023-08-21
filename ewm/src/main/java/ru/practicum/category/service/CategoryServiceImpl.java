@@ -12,8 +12,8 @@ import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepo;
 import ru.practicum.events.repo.EventRepo;
 import ru.practicum.exception.exceptions.CategoryDeleteException;
-import ru.practicum.exception.exceptions.CategoryUniqueNameException;
 import ru.practicum.exception.exceptions.NotFoundException;
+import ru.practicum.validator.CategoryValidator;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,9 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public OutputCategoryDto createCategory(InputCategoryDto inputCategoryDto) {
-        if (categoryRepo.existsByName(inputCategoryDto.getName())) {
-            throw new CategoryUniqueNameException("Name already exist");
-        }
+        CategoryValidator.checkNameAlreadyExist(categoryRepo, inputCategoryDto.getName());
         return CategoryDtoMapper.toOutputCategoryDto(
                 categoryRepo.save(CategoryDtoMapper.toCategory(inputCategoryDto)));
     }
@@ -37,9 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long catId) {
-        if (!categoryRepo.existsById(catId)) {
-            throw new NotFoundException("Category with id %d does not exist");
-        }
+        CategoryValidator.checkCategoryExist(categoryRepo, catId);
         if (eventRepo.existsByCategory_Id(catId)) {
             throw new CategoryDeleteException("Category with id used in Events");
         }
@@ -49,12 +45,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public OutputCategoryDto patchCategory(Long catId, InputCategoryDto inputCategoryDto) {
-        if (!categoryRepo.existsById(catId)) {
-            throw new NotFoundException("Category with id %d does not exist");
-        }
-        if (categoryRepo.existsByNameAndIdNot(inputCategoryDto.getName(), catId)) {
-            throw new CategoryUniqueNameException("Name already exist");
-        }
+        CategoryValidator.checkCategoryExist(categoryRepo, catId);
+        CategoryValidator.checkAnotherCategoryUseName(categoryRepo, catId, inputCategoryDto.getName());
         return CategoryDtoMapper.toOutputCategoryDto(
                 CategoryDtoMapper.updateCategory(inputCategoryDto, catId));
     }

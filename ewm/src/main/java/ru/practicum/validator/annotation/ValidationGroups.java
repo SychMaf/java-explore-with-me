@@ -1,4 +1,4 @@
-package ru.practicum.validator;
+package ru.practicum.validator.annotation;
 
 import javax.validation.groups.Default;
 

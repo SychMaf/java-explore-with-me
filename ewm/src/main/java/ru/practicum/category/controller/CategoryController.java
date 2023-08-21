@@ -1,4 +1,4 @@
-package ru.practicum.category;
+package ru.practicum.category.controller;
 
 
 import lombok.RequiredArgsConstructor;
@@ -23,14 +23,14 @@ public class CategoryController {
     @PostMapping("/admin/categories")
     @ResponseStatus(HttpStatus.CREATED) //201
     public OutputCategoryDto createCategory(@RequestBody @Valid InputCategoryDto inputCategoryDto) {
-        log.trace("CONTROLLER: request to create category: {}", inputCategoryDto);
+        log.trace("ADMIN CONTROLLER: request to create category: {}", inputCategoryDto);
         return categoryService.createCategory(inputCategoryDto);
     }
 
     @DeleteMapping("/admin/categories/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)  //204
     public void removeCategory(@PathVariable Long catId) {
-        log.trace("CONTROLLER: request to delete category with id: {}", catId);
+        log.trace("ADMIN CONTROLLER: request to delete category with id: {}", catId);
         categoryService.deleteCategory(catId);
     }
 
@@ -38,7 +38,7 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.OK)  //200
     public OutputCategoryDto patchCategory(@PathVariable Long catId,
                                            @RequestBody @Valid InputCategoryDto inputCategoryDto) {
-        log.trace("CONTROLLER: request to update category: {}", inputCategoryDto);
+        log.trace("ADMIN CONTROLLER: request to update category: {}", inputCategoryDto);
         return categoryService.patchCategory(catId, inputCategoryDto);
     }
 
@@ -46,14 +46,14 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.OK)  //200
     public List<OutputCategoryDto> getAllCategories(@RequestParam(required = false, defaultValue = "0") @PositiveOrZero Integer from,
                                                     @RequestParam(required = false, defaultValue = "10") @Positive Integer size) {
-        log.trace("CONTROLLER: request to get all category");
+        log.trace("PUBLIC CONTROLLER: request to get all category");
         return categoryService.getAllCategories(from, size);
     }
 
     @GetMapping("/categories/{catId}")
     @ResponseStatus(HttpStatus.OK)  //200
     public OutputCategoryDto getCategoryById(@PathVariable Long catId) {
-        log.trace("CONTROLLER: request to find category with id: {}", catId);
+        log.trace("PUBLIC CONTROLLER: request to find category with id: {}", catId);
         return categoryService.getCategoryById(catId);
     }
 }

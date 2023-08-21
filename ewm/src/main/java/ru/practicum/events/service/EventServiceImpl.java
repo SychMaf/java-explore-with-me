@@ -18,15 +18,15 @@ import ru.practicum.events.repo.EventSpecification;
 import ru.practicum.events.repo.SortParam;
 import ru.practicum.exception.exceptions.EventPatchConflictException;
 import ru.practicum.exception.exceptions.EventStateConflictException;
+import ru.practicum.exception.exceptions.IllegalStateException;
 import ru.practicum.exception.exceptions.NotFoundException;
-import ru.practicum.exception.exceptions.TimeException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
+import ru.practicum.validator.EventValidator;
+import ru.practicum.validator.UserValidator;
 
-import javax.xml.bind.ValidationException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,16 +46,13 @@ public class EventServiceImpl implements EventsService {
         Event event = EventMapper.InputEventDtoToEvent(inputEventDto, user, category);
         event.setState(State.PENDING);
         event.setConfirmedRequest(0L);
-        Event saveEvent = eventRepo.save(event);
-        return EventMapper.eventToFullOutputEventDto(saveEvent);
+        return EventMapper.eventToFullOutputEventDto(eventRepo.save(event));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ShortOutputEventDto> getUserEvents(Long userId, Integer from, Integer size) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
+        UserValidator.checkUserExist(userRepo, userId);
         Pageable pageable = PageRequest.of(from / size, size);
         return eventRepo.findAllByInitiator_Id(userId, pageable).stream()
                 .map(EventMapper::eventToShortOutputDto)
@@ -65,51 +62,48 @@ public class EventServiceImpl implements EventsService {
     @Override
     @Transactional(readOnly = true)
     public FullOutputEventDto getUserEventById(Long userId, Long eventId) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
-        Event event = eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
-        return EventMapper.eventToFullOutputEventDto(event);
+        UserValidator.checkUserExist(userRepo, userId);
+        return EventMapper.eventToFullOutputEventDto(eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
+                .orElseThrow(() -> new NotFoundException("User dont have events with this id")));
     }
 
     @Override
     @Transactional
-    public FullOutputEventDto patchEvent(Long userId, Long eventId, UpdateUserEventDto updateUserEventDto) {
-        if (!userRepo.existsById(userId)) {
-            throw new NotFoundException("User with id %d does not exist");
-        }
+    public FullOutputEventDto patchEvent(Long userId, Long eventId, UpdateEventDto updateEventDto) {
+        UserValidator.checkUserExist(userRepo, userId);
         Event patchEvent = eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
         if (!(patchEvent.getState().equals(State.PENDING) || patchEvent.getState().equals(State.REJECT_EVENT))) {
             throw new EventPatchConflictException("This Event not in normal?(PENDING/REJECT_EVENT) state");
         }
         Category patchCategory = patchEvent.getCategory();
-        if (updateUserEventDto.getCategory() != null) {
-            patchCategory = categoryRepo.findById(updateUserEventDto.getCategory())
+        if (updateEventDto.getCategory() != null) {
+            patchCategory = categoryRepo.findById(updateEventDto.getCategory())
                     .orElseThrow(() -> new NotFoundException("Category with id %d does not exist"));
         }
         State patchState = patchEvent.getState();
-        if (updateUserEventDto.getStateAction() != null) {
-            UserUpdateState updateState = UserUpdateState.valueOf(updateUserEventDto.getStateAction());
-            switch (updateState) {
-                case CANCEL_REVIEW:
-                    patchState = State.CANCELED;
-                    break;
-                case SEND_TO_REVIEW:
-                    patchState = State.PENDING;
+        if (updateEventDto.getStateAction() != null) {
+            try {
+                UserUpdateState updateState = UserUpdateState.valueOf(updateEventDto.getStateAction());
+                switch (updateState) {
+                    case CANCEL_REVIEW:
+                        patchState = State.CANCELED;
+                        break;
+                    case SEND_TO_REVIEW:
+                        patchState = State.PENDING;
+                }
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException("Not correct event State in query");
             }
         }
-        patchEvent = eventRepo.save(EventMapper.updateEventUser(updateUserEventDto, patchEvent, patchCategory, patchState));
-        return EventMapper.eventToFullOutputEventDto(patchEvent);
+        return EventMapper.eventToFullOutputEventDto(eventRepo.save
+                (EventMapper.updateEventUser(updateEventDto, patchEvent, patchCategory, patchState)));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FullOutputEventDto> getFullInformationEvents(List<Long> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
-            throw new TimeException("Start time can not be after End time");
-        }
+        EventValidator.checkEventStartTime(rangeStart, rangeEnd);
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
@@ -122,7 +116,7 @@ public class EventServiceImpl implements EventsService {
                         .collect(Collectors.toList());
             }
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException();
+            throw new IllegalStateException("Not correct event State in query");
         }
         EventCriteria criteria = EventCriteria.builder()
                 .users(users)
@@ -139,20 +133,20 @@ public class EventServiceImpl implements EventsService {
 
     @Override
     @Transactional
-    public FullOutputEventDto adminPatchEvent(Long eventId, UpdateUserEventDto updateUserEventDto) {
+    public FullOutputEventDto adminPatchEvent(Long eventId, UpdateEventDto updateEventDto) {
         Event patchEvent = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
         if (patchEvent.getState().equals(State.PUBLISHED) || patchEvent.getState().equals(State.REJECT_EVENT)) {
             throw new EventStateConflictException("Attempt patch PUBLISHED/REJECT_EVENT Event");
         }
         Category patchCategory = patchEvent.getCategory();
-        if (updateUserEventDto.getCategory() != null) {
-            patchCategory = categoryRepo.findById(updateUserEventDto.getCategory())
+        if (updateEventDto.getCategory() != null) {
+            patchCategory = categoryRepo.findById(updateEventDto.getCategory())
                     .orElseThrow(() -> new NotFoundException("Category with id %d does not exist"));
         }
         State patchState = patchEvent.getState();
-        if (updateUserEventDto.getStateAction() != null) {
-            AdminUpdateState updateState = AdminUpdateState.valueOf(updateUserEventDto.getStateAction());
+        if (updateEventDto.getStateAction() != null) {
+            AdminUpdateState updateState = AdminUpdateState.valueOf(updateEventDto.getStateAction());
             switch (updateState) {
                 case PUBLISH_EVENT:
                     patchState = State.PUBLISHED;
@@ -162,16 +156,14 @@ public class EventServiceImpl implements EventsService {
                     patchState = State.REJECT_EVENT;
             }
         }
-        patchEvent = eventRepo.save(EventMapper.updateEventUser(updateUserEventDto, patchEvent, patchCategory, patchState));
-        return EventMapper.eventToFullOutputEventDto(patchEvent);
+        return EventMapper.eventToFullOutputEventDto(eventRepo.save
+                (EventMapper.updateEventUser(updateEventDto, patchEvent, patchCategory, patchState)));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
-        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
-            throw new TimeException("Start time can not be after End time");
-        }
+        EventValidator.checkEventStartTime(rangeStart, rangeEnd);
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
