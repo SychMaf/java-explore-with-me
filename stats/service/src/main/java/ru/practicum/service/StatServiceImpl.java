@@ -11,6 +11,7 @@ import ru.practicum.repo.StatRepo;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,9 @@ public class StatServiceImpl implements StatService {
     @Override
     @Transactional(readOnly = true)
     public List<OutputDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        uris = uris.stream()
+                .map(uri -> (uri.replace("[", "").replace("]", "")))
+                .collect(Collectors.toList());
         if (unique) {
             if (uris.isEmpty()) {
                 return statRepo.findWithoutUrisAndUniqueIp(start, end);

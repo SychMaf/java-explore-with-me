@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepo;
+import ru.practicum.client.Client;
+import ru.practicum.dto.InputDto;
+import ru.practicum.dto.OutputDto;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.model.AdminUpdateState;
 import ru.practicum.events.model.Event;
@@ -26,15 +29,20 @@ import ru.practicum.validator.EventValidator;
 import ru.practicum.validator.UserValidator;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventsService {
+    private final String app = "ewm-service";
     private final EventRepo eventRepo;
     private final UserRepo userRepo;
     private final CategoryRepo categoryRepo;
+    private final Client statsClient;
 
     @Override
     @Transactional
@@ -162,8 +170,14 @@ public class EventServiceImpl implements EventsService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
+    public List<ShortOutputEventDto> searchEventsWithParam(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size, String ip) {
         EventValidator.checkEventStartTime(rangeStart, rangeEnd);
+        statsClient.addNewRequest(InputDto.builder()
+                .app(app)
+                .uri("/events")
+                .ip(ip)
+                .timestamp(LocalDateTime.now())
+                .build());
         if (rangeStart == null && rangeEnd == null) {
             rangeStart = LocalDateTime.now();
         }
@@ -185,8 +199,27 @@ public class EventServiceImpl implements EventsService {
 
     @Override
     @Transactional(readOnly = true)
-    public FullOutputEventDto getEventById(Long id) {
-        return EventMapper.eventToFullOutputEventDto(eventRepo.findPublishedEventById(id)
-                .orElseThrow(() -> new NotFoundException("User dont have events with this id")));
+    public FullOutputEventDto getEventById(Long id, String ip) {
+        Event event = eventRepo.findPublishedEventById(id)
+                .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
+        statsClient.addNewRequest(InputDto.builder()
+                .app(app)
+                .uri("/events/" + id)
+                .ip(ip)
+                .timestamp(LocalDateTime.now())
+                .build());
+        List<OutputDto> getStat = statsClient.getStats(event.getCreatedOn().minusMinutes(10).truncatedTo(ChronoUnit.SECONDS),
+                LocalDateTime.now().plusMinutes(10),
+                List.of("/events/" + id),
+                true);
+        return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event), getStat).get(0));
+    }
+
+    private List<Event> fillEventsHit(List<Event> events, List<OutputDto> stat) {
+        Map<Long, Long> result = new HashMap<>();
+        stat.forEach(st -> result.put(Long.valueOf(st.getUri().substring(st.getUri().lastIndexOf("/") + 1)), st.getHits()));
+        return events.stream()
+                .peek(event -> event.setViews(result.get(event.getId())))
+                .collect(Collectors.toList());
     }
 }

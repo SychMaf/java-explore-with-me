@@ -9,6 +9,7 @@ import ru.practicum.events.dto.FullOutputEventDto;
 import ru.practicum.events.dto.ShortOutputEventDto;
 import ru.practicum.events.service.EventsService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j
 public class PublicEventsController {
     private final EventsService eventsService;
+    private final HttpServletRequest servletRequest;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -43,13 +45,14 @@ public class PublicEventsController {
                 onlyAvailable,
                 sort,
                 from,
-                size);
+                size,
+                servletRequest.getRemoteAddr());
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public FullOutputEventDto getEventById(@PathVariable Long id) {
         log.trace("PUBLIC CONTROLLER: request to find event with id: {}", id);
-        return eventsService.getEventById(id);
+        return eventsService.getEventById(id, servletRequest.getRemoteAddr());
     }
 }

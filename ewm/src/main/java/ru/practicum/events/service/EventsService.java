@@ -32,7 +32,8 @@ public interface EventsService {
                                                     Boolean onlyAvailable,
                                                     String sort,
                                                     Integer from,
-                                                    Integer size);
+                                                    Integer size,
+                                                    String ip);
 
-    FullOutputEventDto getEventById(Long id);
+    FullOutputEventDto getEventById(Long id, String ip);
 }
