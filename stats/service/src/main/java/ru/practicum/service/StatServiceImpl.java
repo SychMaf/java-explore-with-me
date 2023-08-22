@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.InputDto;
 import ru.practicum.dto.OutputDto;
+import ru.practicum.exception.exceptions.NotCorrectTimeException;
 import ru.practicum.mapper.StatDtoMapper;
 import ru.practicum.model.Stats;
 import ru.practicum.repo.StatRepo;
@@ -28,6 +29,9 @@ public class StatServiceImpl implements StatService {
     @Override
     @Transactional(readOnly = true)
     public List<OutputDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        if (start.isAfter(end)) {
+            throw new NotCorrectTimeException("Start time can not be after End time");
+        }
         uris = uris.stream()
                 .map(uri -> (uri.replace("[", "").replace("]", "")))
                 .collect(Collectors.toList());

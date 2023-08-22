@@ -31,6 +31,7 @@ public class InputEventDto {
     private Boolean paid = false;
     private Integer participantLimit = 0;
     private Boolean requestModeration = true;
+    @NotBlank
     @Size(min = 3, max = 120)
     private String title;
 }

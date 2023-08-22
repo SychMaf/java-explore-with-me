@@ -16,7 +16,7 @@ public class UpdateEventStartValidator implements ConstraintValidator<EventStart
 
     @Override
     public boolean isValid(UpdateEventDto updateEventDto, ConstraintValidatorContext ctx) {
-        if(updateEventDto.getEventDate() != null) {
+        if (updateEventDto.getEventDate() != null) {
             return (updateEventDto.getEventDate().isAfter(LocalDateTime.now().plusHours(check.min())));
         } else {
             return true;

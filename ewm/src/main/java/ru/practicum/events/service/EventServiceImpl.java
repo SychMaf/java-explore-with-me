@@ -51,7 +51,7 @@ public class EventServiceImpl implements EventsService {
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
         Category category = categoryRepo.findById(inputEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
-        Event event = EventMapper.InputEventDtoToEvent(inputEventDto, user, category);
+        Event event = EventMapper.inputEventDtoToEvent(inputEventDto, user, category);
         event.setState(State.PENDING);
         event.setConfirmedRequest(0L);
         return EventMapper.eventToFullOutputEventDto(eventRepo.save(event));
@@ -62,7 +62,7 @@ public class EventServiceImpl implements EventsService {
     public List<ShortOutputEventDto> getUserEvents(Long userId, Integer from, Integer size) {
         UserValidator.checkUserExist(userRepo, userId);
         Pageable pageable = PageRequest.of(from / size, size);
-        return eventRepo.findAllByInitiator_Id(userId, pageable).stream()
+        return fillEventsHit(eventRepo.findAllByInitiator_Id(userId, pageable)).stream()
                 .map(EventMapper::eventToShortOutputDto)
                 .collect(Collectors.toList());
     }
@@ -71,8 +71,9 @@ public class EventServiceImpl implements EventsService {
     @Transactional(readOnly = true)
     public FullOutputEventDto getUserEventById(Long userId, Long eventId) {
         UserValidator.checkUserExist(userRepo, userId);
-        return EventMapper.eventToFullOutputEventDto(eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
-                .orElseThrow(() -> new NotFoundException("User dont have events with this id")));
+        Event event = eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
+                .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
+        return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event)).get(0));
     }
 
     @Override
@@ -104,8 +105,8 @@ public class EventServiceImpl implements EventsService {
                 throw new IllegalStateException("Not correct event State in query");
             }
         }
-        return EventMapper.eventToFullOutputEventDto(eventRepo.save
-                (EventMapper.updateEventUser(updateEventDto, patchEvent, patchCategory, patchState)));
+        return EventMapper.eventToFullOutputEventDto(eventRepo.save(
+                EventMapper.updateEvent(updateEventDto, patchEvent, patchCategory, patchState)));
     }
 
     @Override
@@ -134,7 +135,7 @@ public class EventServiceImpl implements EventsService {
                 .rangeEnd(rangeEnd)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-        return eventRepo.findAll(eventSpecification, pageable).stream()
+        return fillEventsHit(eventRepo.findAll(eventSpecification, pageable).toList()).stream()
                 .map(EventMapper::eventToFullOutputEventDto)
                 .collect(Collectors.toList());
     }
@@ -164,8 +165,8 @@ public class EventServiceImpl implements EventsService {
                     patchState = State.REJECT_EVENT;
             }
         }
-        return EventMapper.eventToFullOutputEventDto(eventRepo.save
-                (EventMapper.updateEventUser(updateEventDto, patchEvent, patchCategory, patchState)));
+        return EventMapper.eventToFullOutputEventDto(eventRepo.save(
+                EventMapper.updateEvent(updateEventDto, patchEvent, patchCategory, patchState)));
     }
 
     @Override
@@ -192,7 +193,7 @@ public class EventServiceImpl implements EventsService {
                 .sortParam(sort != null ? SortParam.valueOf(sort) : null)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-        return eventRepo.findAll(eventSpecification, pageable).stream()
+        return fillEventsHit(eventRepo.findAll(eventSpecification, pageable).toList()).stream()
                 .map(EventMapper::eventToShortOutputDto)
                 .collect(Collectors.toList());
     }
@@ -208,16 +209,19 @@ public class EventServiceImpl implements EventsService {
                 .ip(ip)
                 .timestamp(LocalDateTime.now())
                 .build());
-        List<OutputDto> getStat = statsClient.getStats(event.getCreatedOn().minusMinutes(10).truncatedTo(ChronoUnit.SECONDS),
-                LocalDateTime.now().plusMinutes(10),
-                List.of("/events/" + id),
-                true);
-        return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event), getStat).get(0));
+        return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event)).get(0));
     }
 
-    private List<Event> fillEventsHit(List<Event> events, List<OutputDto> stat) {
+    private List<Event> fillEventsHit(List<Event> events) {
+        List<OutputDto> getStat = statsClient.getStats(
+                LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.SECONDS),
+                LocalDateTime.now().plusMinutes(1),
+                events.stream()
+                        .map(event -> "/events/" + event.getId())
+                        .collect(Collectors.toList()),
+                true);
         Map<Long, Long> result = new HashMap<>();
-        stat.forEach(st -> result.put(Long.valueOf(st.getUri().substring(st.getUri().lastIndexOf("/") + 1)), st.getHits()));
+        getStat.forEach(st -> result.put(Long.valueOf(st.getUri().substring(st.getUri().lastIndexOf("/") + 1)), st.getHits()));
         return events.stream()
                 .peek(event -> event.setViews(result.get(event.getId())))
                 .collect(Collectors.toList());

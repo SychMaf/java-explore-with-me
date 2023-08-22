@@ -30,7 +30,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public OutputCompilationDto createCompilation(InputCompilationDto inputCompilationDto) {
         List<Event> events = eventRepo.findAllByIdIn(inputCompilationDto.getEvents());
-        Compilation compilation = CompilationMapper.InputCompilationDtotoCompilation(inputCompilationDto, events);
+        Compilation compilation = CompilationMapper.inputCompilationDtotoCompilation(inputCompilationDto, events);
         return CompilationMapper.compilationToOutputCompilationDto(compilationRepo.save(compilation));
     }
 
