@@ -1,5 +1,6 @@
 package ru.practicum.client;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,7 +17,8 @@ import java.util.Objects;
 public class Client {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     protected final RestTemplate rest = new RestTemplate();
-    private final String path = "http://localhost:9090";
+    @Value("${stats-server.url}")
+    private String path;
 
     public void addNewRequest(InputDto inputDto) {
         rest.postForLocation(path + "/hit", inputDto);
