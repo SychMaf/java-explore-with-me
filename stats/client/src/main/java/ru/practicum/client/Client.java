@@ -17,8 +17,8 @@ import java.util.Objects;
 public class Client {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     protected final RestTemplate rest = new RestTemplate();
-    @Value("${stats-server.url}")
-    private String path;
+    //@Value("${stats-server.url}")
+    private String path = "http://localhost:9090";
 
     public void addNewRequest(InputDto inputDto) {
         rest.postForLocation(path + "/hit", inputDto);

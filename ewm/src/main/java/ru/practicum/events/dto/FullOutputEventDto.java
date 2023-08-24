@@ -36,4 +36,6 @@ public class FullOutputEventDto {
     private State state;
     private String title;
     private Long views;
+    private Long countLikes;
+    private Long countDislikes;
 }

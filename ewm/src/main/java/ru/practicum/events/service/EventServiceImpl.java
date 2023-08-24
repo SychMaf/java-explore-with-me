@@ -23,6 +23,8 @@ import ru.practicum.exception.exceptions.EventPatchConflictException;
 import ru.practicum.exception.exceptions.EventStateConflictException;
 import ru.practicum.exception.exceptions.IllegalStateException;
 import ru.practicum.exception.exceptions.NotFoundException;
+import ru.practicum.rate.model.StateRate;
+import ru.practicum.rate.repo.RateRepo;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepo;
 import ru.practicum.validator.EventValidator;
@@ -42,6 +44,7 @@ public class EventServiceImpl implements EventsService {
     private final EventRepo eventRepo;
     private final UserRepo userRepo;
     private final CategoryRepo categoryRepo;
+    private final RateRepo rateRepo;
     private final Client statsClient;
 
     @Override
@@ -62,7 +65,9 @@ public class EventServiceImpl implements EventsService {
     public List<ShortOutputEventDto> getUserEvents(Long userId, Integer from, Integer size) {
         UserValidator.checkUserExist(userRepo, userId);
         Pageable pageable = PageRequest.of(from / size, size);
-        return fillEventsHit(eventRepo.findAllByInitiator_Id(userId, pageable)).stream()
+        List<Event> events = eventRepo.findAllByInitiator_Id(userId, pageable);
+        events = fillEventsRating(events);
+        return fillEventsHit(events).stream()
                 .map(EventMapper::eventToShortOutputDto)
                 .collect(Collectors.toList());
     }
@@ -73,6 +78,7 @@ public class EventServiceImpl implements EventsService {
         UserValidator.checkUserExist(userRepo, userId);
         Event event = eventRepo.findAllByIdAndInitiator_Id(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
+        event = fillEventsRating(List.of(event)).get(0);
         return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event)).get(0));
     }
 
@@ -135,7 +141,10 @@ public class EventServiceImpl implements EventsService {
                 .rangeEnd(rangeEnd)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-        return fillEventsHit(eventRepo.findAll(eventSpecification, pageable).toList()).stream()
+        List<Event> events = eventRepo.findAll(eventSpecification, pageable).toList();
+        events = fillEventsRating(events);
+        events = fillEventsHit(events);
+        return fillEventsHit(events).stream()
                 .map(EventMapper::eventToFullOutputEventDto)
                 .collect(Collectors.toList());
     }
@@ -193,7 +202,10 @@ public class EventServiceImpl implements EventsService {
                 .sortParam(sort != null ? SortParam.valueOf(sort) : null)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-        return fillEventsHit(eventRepo.findAll(eventSpecification, pageable).toList()).stream()
+        List <Event> events = eventRepo.findAll(eventSpecification, pageable).toList();
+        events = fillEventsRating(events);
+        events = fillEventsHit(events);
+        return events.stream()
                 .map(EventMapper::eventToShortOutputDto)
                 .collect(Collectors.toList());
     }
@@ -209,6 +221,7 @@ public class EventServiceImpl implements EventsService {
                 .ip(ip)
                 .timestamp(LocalDateTime.now())
                 .build());
+        event = fillEventsRating(List.of(event)).get(0);
         return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event)).get(0));
     }
 
@@ -224,6 +237,13 @@ public class EventServiceImpl implements EventsService {
         getStat.forEach(st -> result.put(Long.valueOf(st.getUri().substring(st.getUri().lastIndexOf("/") + 1)), st.getHits()));
         return events.stream()
                 .peek(event -> event.setViews(result.get(event.getId())))
+                .collect(Collectors.toList());
+    }
+
+    private List<Event> fillEventsRating(List<Event> events) {
+        return events.stream()
+                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
+                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
                 .collect(Collectors.toList());
     }
 }
