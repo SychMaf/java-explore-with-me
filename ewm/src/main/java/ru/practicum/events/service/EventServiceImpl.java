@@ -226,6 +226,7 @@ public class EventServiceImpl implements EventsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ShortOutputEventDto> getLikedUserEvents(Long userId) {
         UserValidator.checkUserExist(userRepo, userId);
         List<Event> events = rateRepo.findAllByRatePK_User_Id(userId).stream()

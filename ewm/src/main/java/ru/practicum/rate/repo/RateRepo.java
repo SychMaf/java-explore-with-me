@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface RateRepo extends JpaRepository<Rate, RatePK> {
     String agrFunction = "trunc((((sum(r.rate)) / (count(r.ratePK.user))) + ln(count(r.ratePK.user)))*100)";
+
     default Boolean existsByUserAndEvent(Long eventId, Long userId) {
         return existsByRatePK_Event_IdAndRatePK_User_Id(eventId, userId);
     }
