@@ -83,3 +83,6 @@ CREATE TABLE IF NOT EXISTS rates (
     CONSTRAINT fk__user FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk__event FOREIGN KEY (event_id) REFERENCES events (event_id)
 );
+
+CREATE INDEX IF NOT EXISTS rates_event_id_idx on rates (user_id);
+CREATE INDEX IF NOT EXISTS rates_user_id_idx on rates (event_id);

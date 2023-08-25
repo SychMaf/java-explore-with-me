@@ -202,7 +202,7 @@ public class EventServiceImpl implements EventsService {
                 .sortParam(sort != null ? SortParam.valueOf(sort) : null)
                 .build();
         EventSpecification eventSpecification = new EventSpecification(criteria);
-        List <Event> events = eventRepo.findAll(eventSpecification, pageable).toList();
+        List<Event> events = eventRepo.findAll(eventSpecification, pageable).toList();
         events = fillEventsRating(events);
         events = fillEventsHit(events);
         return events.stream()
@@ -225,6 +225,19 @@ public class EventServiceImpl implements EventsService {
         return EventMapper.eventToFullOutputEventDto(fillEventsHit(List.of(event)).get(0));
     }
 
+    @Override
+    public List<ShortOutputEventDto> getLikedUserEvents(Long userId) {
+        UserValidator.checkUserExist(userRepo, userId);
+        List<Event> events = rateRepo.findAllByRatePK_User_Id(userId).stream()
+                .map(rate -> rate.getRatePK().getEvent())
+                .collect(Collectors.toList());
+        events = fillEventsRating(events);
+        events = fillEventsHit(events);
+        return events.stream()
+                .map(EventMapper::eventToShortOutputDto)
+                .collect(Collectors.toList());
+    }
+
     private List<Event> fillEventsHit(List<Event> events) {
         List<OutputDto> getStat = statsClient.getStats(
                 LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.SECONDS),
@@ -236,7 +249,7 @@ public class EventServiceImpl implements EventsService {
         Map<Long, Long> result = new HashMap<>();
         getStat.forEach(st -> result.put(Long.valueOf(st.getUri().substring(st.getUri().lastIndexOf("/") + 1)), st.getHits()));
         return events.stream()
-                .peek(event -> event.setViews(result.get(event.getId())))
+                .peek(event -> event.setViews(result.get(event.getId()) != null ? result.get(event.getId()) : 0))
                 .collect(Collectors.toList());
     }
 

@@ -69,6 +69,7 @@ public class EventMapper {
                 .title(event.getTitle())
                 .countDislikes(event.getCountDislikes() != null ? event.getCountDislikes() : 0)
                 .countLikes(event.getCountLikes() != null ? event.getCountLikes() : 0)
+                .views(event.getViews())
                 .build();
     }
 

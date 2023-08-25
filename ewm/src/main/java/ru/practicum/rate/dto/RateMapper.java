@@ -19,6 +19,8 @@ public class RateMapper {
     }
 
     public PopularEventsDto toPopularEventsDto(PopularEvents popularEvents) {
+        popularEvents.getEvent().setCountLikes(popularEvents.getCountLike());
+        popularEvents.getEvent().setCountDislikes(popularEvents.getCountDislike());
         return PopularEventsDto.builder()
                 .shortOutputEventDto(EventMapper.eventToShortOutputDto(popularEvents.getEvent()))
                 .countLike(popularEvents.getCountLike())

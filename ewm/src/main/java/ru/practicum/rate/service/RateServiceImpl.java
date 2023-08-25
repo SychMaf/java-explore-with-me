@@ -41,7 +41,7 @@ public class RateServiceImpl implements RateService {
                 .orElseThrow(() -> new NotFoundException("User with id %d does not exist"));
         Event event = eventRepo.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("User dont have events with this id"));
-        RateValidator.checkUserHaveConfirmedRequest(requestRepo ,userId, eventId);
+        RateValidator.checkUserHaveConfirmedRequest(requestRepo, userId, eventId);
         RatePK ratePK = RatePK.builder()
                 .event(event)
                 .user(user)
@@ -61,7 +61,6 @@ public class RateServiceImpl implements RateService {
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("Not correct event State in query");
         }
-
         return RateMapper.toOutputRateDto(rateRepo.save(createdRate),
                 rateRepo.findCountRates(eventId, StateRate.LIKE),
                 rateRepo.findCountRates(eventId, StateRate.DISLIKE));
@@ -76,8 +75,19 @@ public class RateServiceImpl implements RateService {
         rateRepo.deleteByUserAndEvent(eventId, userId);
     }
 
+//    @Override
+//    public List<ShortOutputEventDto> getLikedUserEvents(Long userId) {
+//        UserValidator.checkUserExist(userRepo, userId);
+//        return rateRepo.findAllByRatePK_User_Id(userId).stream()
+//                .map(rate -> rate.getRatePK().getEvent())
+//                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
+//                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
+//                .map(EventMapper::eventToShortOutputDto)
+//                .collect(Collectors.toList());
+//    }
+
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<PopularEventsDto> getMustPopularEvents(Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
         return rateRepo.findBests(pageable).stream()
