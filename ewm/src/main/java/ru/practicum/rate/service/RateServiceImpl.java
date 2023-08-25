@@ -75,17 +75,6 @@ public class RateServiceImpl implements RateService {
         rateRepo.deleteByUserAndEvent(eventId, userId);
     }
 
-//    @Override
-//    public List<ShortOutputEventDto> getLikedUserEvents(Long userId) {
-//        UserValidator.checkUserExist(userRepo, userId);
-//        return rateRepo.findAllByRatePK_User_Id(userId).stream()
-//                .map(rate -> rate.getRatePK().getEvent())
-//                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
-//                .peek(event -> event.setCountLikes(rateRepo.findCountRates(event.getId(), StateRate.LIKE)))
-//                .map(EventMapper::eventToShortOutputDto)
-//                .collect(Collectors.toList());
-//    }
-
     @Override
     @Transactional(readOnly = true)
     public List<PopularEventsDto> getMustPopularEvents(Integer from, Integer size) {
