@@ -52,6 +52,8 @@ public class EventMapper {
                 .state(event.getState())
                 .title(event.getTitle())
                 .views(event.getViews())
+                .countDislikes(event.getCountDislikes() != null ? event.getCountDislikes() : 0)
+                .countLikes(event.getCountLikes() != null ? event.getCountLikes() : 0)
                 .build();
     }
 
@@ -65,6 +67,9 @@ public class EventMapper {
                 .initiator(UserDtoMapper.toOutputUserDto(event.getInitiator()))
                 .paid(event.getPaid())
                 .title(event.getTitle())
+                .countDislikes(event.getCountDislikes() != null ? event.getCountDislikes() : 0)
+                .countLikes(event.getCountLikes() != null ? event.getCountLikes() : 0)
+                .views(event.getViews())
                 .build();
     }
 

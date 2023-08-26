@@ -58,4 +58,11 @@ public class UserEventsController {
         log.trace("USER CONTROLLER: request to update event: {}", updateEventDto);
         return eventsService.patchEvent(userId, eventId, updateEventDto);
     }
+
+    @GetMapping("/{userId}/events/liked")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ShortOutputEventDto> getLikedUserEvents(@PathVariable Long userId) {
+        log.trace("USER CONTROLLER: request to Find liked user events");
+        return eventsService.getLikedUserEvents(userId);
+    }
 }

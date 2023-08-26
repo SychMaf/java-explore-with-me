@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.exception.exceptions.*;
+import ru.practicum.exception.exceptions.IllegalStateException;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -78,6 +79,14 @@ public class ErrorHandler {
         log.error(e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST) //400
+    public ErrorResponse handleIllegalStateException(IllegalStateException e) {
+        log.error(e.getMessage(), e);
+        return new ErrorResponse(e.getMessage());
+    }
+
 
     @Getter
     @AllArgsConstructor

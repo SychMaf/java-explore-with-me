@@ -36,4 +36,6 @@ public interface EventsService {
                                                     String ip);
 
     FullOutputEventDto getEventById(Long id, String ip);
+
+    List<ShortOutputEventDto> getLikedUserEvents(Long userId);
 }

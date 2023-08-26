@@ -55,4 +55,8 @@ public class Event {
     private String title;
     @Column(name = "views")
     private Long views;
+    @Transient
+    private Long countLikes;
+    @Transient
+    private Long countDislikes;
 }
