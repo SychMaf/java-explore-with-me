@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
@@ -18,8 +19,14 @@ public class UserController {
 
     @PostMapping("/createUser")
     public String createUser(@ModelAttribute InputUserDto inputUserDto, Model model) {
-        ResponseEntity<OutputUserDto> dto = rest.postForEntity(path + "/admin/users", new HttpEntity<>(inputUserDto), OutputUserDto.class);
-        model.addAttribute("dto", Objects.requireNonNull(dto.getBody()));
+        try {
+            ResponseEntity<OutputUserDto> dto = rest.postForEntity(path + "/admin/users", new HttpEntity<>(inputUserDto), OutputUserDto.class);
+            model.addAttribute("dto", Objects.requireNonNull(dto.getBody()));
+        } catch (HttpClientErrorException e) {
+            if (Objects.requireNonNull(e.getMessage()).contains("Email already used")) {
+                return "/exception/emailException";
+            }
+        }
         return "user/userCreate";
     }
 
@@ -38,6 +45,5 @@ public class UserController {
         rest.delete(path + "/admin/users/" + userId);
         return "user/userDelete";
     }
-
 
 }
