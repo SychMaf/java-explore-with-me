@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/style.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="container">
+    <h3>User delete form</h3>
+    <form th:action="@{/deleteUserParams}" th:method="post">
+        <p>User id: <input type="number" th:name="userId"/></p>
+        <input type="submit"/>
+    </form>
+</div>
+
+</body>
+</html>
