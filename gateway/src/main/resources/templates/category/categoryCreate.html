@@ -6,11 +6,11 @@
     <link th:href="@{/style.css}" rel="stylesheet"/>
 </head>
 <body>
-
 <div class="container">
-    <h2>damn dude, someone is using this email :(</h2>
+<h3>category successful created</h3>
+    <p th:text="'Id: ' + ${dto.getId()}"></p>
+    <p th:text="'Name: ' + ${dto.getName()}"></p>
     <a href="/homePage">Back to main page</a>
 </div>
-
 </body>
 </html>

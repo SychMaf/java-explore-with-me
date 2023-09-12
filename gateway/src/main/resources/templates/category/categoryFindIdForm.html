@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/style.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="container">
+    <h3>Category find by Id form</h3>
+    <form th:action="@{/categoryFindById}" th:method="post">
+        <p>Category id: <input type="number" th:name="catId"/></p>
+        <input type="submit"/>
+    </form>
+</div>
+
+</body>
+</html>

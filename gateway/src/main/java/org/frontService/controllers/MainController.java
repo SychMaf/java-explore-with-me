@@ -1,6 +1,7 @@
 package org.frontService.controllers;
 
 
+import org.frontService.category.dto.InputCategoryDto;
 import org.frontService.user.dto.InputUserDto;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,12 @@ public class MainController {
     public String getUserOperation(@ModelAttribute InputUserDto inputUserDto, Model model) {
         model.addAttribute(inputUserDto);
         return "user/userCreateForm";
+    }
+
+    @GetMapping("/categoryCreateForm")
+    public String getCategoryOperation(@ModelAttribute InputCategoryDto inputCategoryDto, Model model) {
+        model.addAttribute(inputCategoryDto);
+        return "category/categoryCreateForm";
     }
 
 }
