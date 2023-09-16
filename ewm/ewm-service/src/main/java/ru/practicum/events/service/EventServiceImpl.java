@@ -194,8 +194,9 @@ public class EventServiceImpl implements EventsService {
         Pageable pageable = PageRequest.of(from / size, size);
         EventCriteria criteria = EventCriteria.builder()
                 .states(List.of(State.PUBLISHED))
+                .paid(paid)
                 .text(text)
-                .categories(categories)
+                .categories(categories.isEmpty() ? null : categories)
                 .rangeEnd(rangeEnd)
                 .rangeStart(rangeStart)
                 .onlyAvailable(onlyAvailable)
