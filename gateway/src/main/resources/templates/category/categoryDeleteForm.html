@@ -2,9 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>delete category</title>
+    <link th:href="@{/style.css}" rel="stylesheet"/>
 </head>
 <body>
+
+<div class="container">
+    <h3>Category delete form</h3>
+    <form th:action="@{/deleteCategoryParams}" th:method="post">
+        <p>Category id: <input type="number" th:name="catId"/></p>
+        <input type="submit"/>
+    </form>
+</div>
 
 </body>
 </html>

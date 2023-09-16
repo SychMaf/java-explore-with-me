@@ -61,6 +61,12 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>ewm-dto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

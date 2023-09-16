@@ -1,7 +1,7 @@
 package org.frontService.user;
 
 import lombok.RequiredArgsConstructor;
-import org.frontService.user.dto.InputUserDto;
+import org.dtoPoint.user.InputUserDto;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,17 +9,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
-    private String path = "http://localhost:8080";
     private final UserClient userClient;
-    protected final RestTemplate rest = new RestTemplate();
 
+    @GetMapping("/userCreateForm")
+    public String getUserOperation(@ModelAttribute InputUserDto inputUserDto, Model model) {
+        model.addAttribute(inputUserDto);
+        return "user/userCreateForm";
+    }
 
     @PostMapping("/createUser")
     public String createUser(@ModelAttribute InputUserDto inputUserDto, Model model) {
@@ -34,19 +36,18 @@ public class UserController {
     }
 
     @GetMapping("/findUserParams")
-    public String findUsers(Model model) {
+    public String findUsers() {
         return "user/findUserParams";
     }
 
     @GetMapping("/deleteUserParams")
-    public String deleteUsers(Model model) {
+    public String deleteUsers() {
         return "user/userDeleteForm";
     }
 
     @PostMapping("/deleteUserParams")
-    public String continueDelete(@RequestParam Long userId, Model model) {
-        rest.delete(path + "/admin/users/" + userId);
-        //delete("/" + id);
+    public String continueDelete(@RequestParam Long userId) {
+        userClient.deleteUser(userId);
         return "user/userDelete";
     }
 

@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link th:href="@{/style.css}" rel="stylesheet"/>
 </head>
 <body>
+
+<div class="container">
+    <h3>Update category</h3>
+    <form action="#" th:action="@{/updateCategory}" th:object="${inputCategoryDto}" th:method="post">
+        <p>Category id: <input type="number" th:name="catId" /></p>
+        <p>Name: <input type="text" th:field="*{name}" /></p>
+        <p><input type="submit" /> <input type="reset" value="Reset" /></p>
+    </form>
+</div>
+
 
 </body>
 </html>

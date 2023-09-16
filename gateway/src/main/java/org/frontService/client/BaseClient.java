@@ -15,30 +15,43 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected <T> ResponseEntity<Object> post(String path, T body, Class responseClass) {
+    protected <T, S> ResponseEntity<S> post(String path, T body, Class<S> responseClass) {
         return post(path, null, body, responseClass);
     }
 
-    protected <T> ResponseEntity<Object> post(String path, @Nullable Map<String, Object> parameters, T body, Class responseClass) {
+    protected <T, S> ResponseEntity<S> post(String path, @Nullable Map<String, Object> parameters, T body, Class<S> responseClass) {
         return makeAndSendRequest(HttpMethod.POST, path, parameters, body, responseClass);
     }
 
-//    protected ResponseEntity<Object> get(String path) {
-//        return get(path, null, null);
-//    }
-//
-//    protected ResponseEntity<Object> get(String path, long userId) {
-//        return get(path, userId, null);
-//    }
-//
-//    protected ResponseEntity<Object> get(String path, Long userId, @Nullable Map<String, Object> parameters) {
-//        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
-//    }
+    protected <T, S> ResponseEntity<S> patch(String path, T body, Class<S> responseClass) {
+        return patch(path, null, body, responseClass);
+    }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body, Class responseClass) {
+    protected <T, S> ResponseEntity<S> patch(String path, @Nullable Map<String, Object> parameters, T body, Class<S> responseClass) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, parameters, body, responseClass);
+    }
+
+    protected <S> ResponseEntity<S> get(String path, Class<S> responseClass) {
+        return get(path, null, responseClass);
+    }
+
+    protected <S> ResponseEntity<S> get(String path, @Nullable Map<String, Object> parameters, Class<S> responseClass) {
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null, responseClass);
+    }
+
+    protected <S> ResponseEntity<S> delete(String path, Class<S> responseClass) {
+        return delete(path, null, responseClass);
+    }
+
+    protected <S> ResponseEntity<S> delete(String path, @Nullable Map<String, Object> parameters, Class<S> responseClass) {
+        return makeAndSendRequest(HttpMethod.DELETE, path, parameters, null, responseClass);
+    }
+
+
+    private <T, S> ResponseEntity<S> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body, Class<S> responseClass) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
-        ResponseEntity<Object> exploreServerResponse;
+        ResponseEntity<S> exploreServerResponse;
         try {
             if (parameters != null) {
                 exploreServerResponse = rest.exchange(path, method, requestEntity, responseClass, parameters);
@@ -46,7 +59,7 @@ public class BaseClient {
                 exploreServerResponse = rest.exchange(path, method, requestEntity, responseClass);
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            throw new RuntimeException(e);
         }
         return prepareGatewayResponse(exploreServerResponse);
     }
@@ -58,7 +71,7 @@ public class BaseClient {
         return headers;
     }
 
-    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
+    private <S> ResponseEntity<S> prepareGatewayResponse(ResponseEntity<S> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
             return response;
         }

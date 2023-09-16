@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="container">
-<h3>Create user</h3>
+<h3>Create category</h3>
     <form action="#" th:action="@{/createCategory}" th:object="${inputCategoryDto}" th:method="post">
         <p>Name: <input type="text" th:field="*{name}" /></p>
         <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
