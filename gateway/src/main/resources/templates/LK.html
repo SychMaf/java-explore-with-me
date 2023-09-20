@@ -8,8 +8,12 @@
 <body>
 
 <div class="container">
-    <h2>damn dude, someone is using this email :(</h2>
+    <h3>Личный кабинет пользователя</h3>
+
+    <p th:text="'Name: ' + ${dto.getName()}"></p>
+    <p th:text="'Email: ' + ${dto.getEmail()}"></p>
     <a href="/homePage">Back to main page</a>
+    <a href="/homePage">LogOut</a>
 </div>
 
 </body>
