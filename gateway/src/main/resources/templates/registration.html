@@ -7,17 +7,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-<header th:insert="blocks/header :: header"></header>
-<p></p>
+<div id="page-wrap">
+    <header th:insert="blocks/header :: header"></header>
+    <p></p>
 
-<div class="container">
-<form th:action="@{/registration}" th:object="${accountUser}" method="post" enctype="multipart/form-data">
-    <h2> Создание нового пользователя сайта</h2>
-    <p><label> User Name : <input type="text" th:field="*{username}"/> </label></p>
-    <p><label> Password: <input type="text" th:field="*{password}"/> </label></p>
-    <p><input type="submit" value="Sign In"/> <input type="reset" value="Reset" /></p>
-    <p><input type="file" name="file" alt="Avatar"></p>
-</form>
+    <div class="container">
+        <form th:action="@{/registration}" th:object="${accountUser}" method="post" enctype="multipart/form-data">
+            <h2> Создание нового пользователя сайта</h2>
+            <p><label> User Name : <input type="text" th:field="*{username}"/> </label></p>
+            <p><label> Password: <input type="text" th:field="*{password}"/> </label></p>
+            <p><input type="submit" value="Sign In"/> <input type="reset" value="Reset"/></p>
+            <p><input type="file" name="file" alt="Avatar"></p>
+        </form>
+    </div>
 </div>
 
 <footer th:insert="blocks/footer :: footer"></footer>

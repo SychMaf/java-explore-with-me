@@ -1,6 +1,7 @@
 p {
     margin: 20px 0;
 }
+html {height: 100vh}
 
 .first_p {
     margin-top: 0;
@@ -38,4 +39,17 @@ p {
     padding: 10px 20px;
     width: max-content;
     margin: 0 auto;
+}
+
+
+#page-wrap:after {
+    content: "";
+    display: block;
+}
+
+footer, #page-wrap:after {height: 10vh}
+
+#page-wrap {
+    min-height: 92vh;
+    margin-bottom: -15px;
 }
