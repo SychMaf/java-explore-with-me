@@ -1,7 +1,13 @@
 package org.frontService.config;
 
+import lombok.RequiredArgsConstructor;
+import org.frontService.account.service.AccountService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -15,7 +21,10 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
+    private final AccountService accountService;
+    private final DataSource dataSource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,14 +46,17 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    UserDetailsManager users(DataSource dataSource) {
-        JdbcUserDetailsManager user = new JdbcUserDetailsManager(dataSource);
-        user.setUsersByUsernameQuery("select username, password, active from person where username=?");
-        user.setAuthoritiesByUsernameQuery(
-                "select u.username, ur.roles from person u " +
-                        "inner join user_role ur on u.id = ur.user_id " +
-                        "where u.username=?");
-        return user;
+    UserDetailsManager users(HttpSecurity http) throws Exception {
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManagerBuilder.class)
+                .userDetailsService(accountService)
+                .passwordEncoder(passwordEncoder())
+                .and()
+                .authenticationProvider(authenticationProvider())
+                .build();
+
+        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+        jdbcUserDetailsManager.setAuthenticationManager(authenticationManager);
+        return jdbcUserDetailsManager;
     }
 
     @Bean
@@ -52,15 +64,11 @@ public class WebSecurityConfig {
         return NoOpPasswordEncoder.getInstance();
     }
 
-    /*@Bean
-    public UserDetailsService userDetailsServic() {
-        UserDetails user =
-                User.withDefaultPasswordEncoder()
-                        .username("u")
-                        .password("p")
-                        .roles("USER")
-                        .build();
-
-        return new InMemoryUserDetailsManager(user);
-    }*/
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(accountService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 }
