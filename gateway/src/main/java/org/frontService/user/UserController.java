@@ -17,13 +17,13 @@ import java.util.Objects;
 public class UserController {
     private final UserClient userClient;
 
-    @GetMapping("/userCreateForm")
-    public String getUserOperation(@ModelAttribute InputUserDto inputUserDto, Model model) {
+    @GetMapping("/create/user")
+    public String createUserForm(@ModelAttribute InputUserDto inputUserDto, Model model) {
         model.addAttribute(inputUserDto);
         return "user/userCreateForm";
     }
 
-    @PostMapping("/createUser")
+    @PostMapping("/create/user")
     public String createUser(@ModelAttribute InputUserDto inputUserDto, Model model) {
         try {
             model.addAttribute("dto", userClient.saveUser(inputUserDto));
@@ -35,18 +35,18 @@ public class UserController {
         return "user/userCreate";
     }
 
-    @GetMapping("/findUserParams")
-    public String findUsers() {
+    @GetMapping("/find/user/params")
+    public String findUser() {
         return "user/findUserParams";
     }
 
-    @GetMapping("/deleteUserParams")
-    public String deleteUsers() {
+    @GetMapping("/delete/user")
+    public String deleteUser() {
         return "user/userDeleteForm";
     }
 
-    @PostMapping("/deleteUserParams")
-    public String continueDelete(@RequestParam Long userId) {
+    @PostMapping("/delete/user")
+    public String deleteUser(@RequestParam Long userId) {
         userClient.deleteUser(userId);
         return "user/userDelete";
     }

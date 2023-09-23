@@ -17,18 +17,18 @@ import java.util.Objects;
 public class CategoryController {
     private final CategoryClient categoryClient;
 
-    @GetMapping("/findCategoryParams")
+    @GetMapping("/find/category/params")
     public String findCategory() {
         return "category/findCategoryParams";
     }
 
-    @GetMapping("/categoryCreateForm")
-    public String getCategoryOperation(@ModelAttribute InputCategoryDto inputCategoryDto, Model model) {
+    @GetMapping("/create/category")
+    public String createCategoryForm(@ModelAttribute InputCategoryDto inputCategoryDto, Model model) {
         model.addAttribute(inputCategoryDto);
         return "category/categoryCreateForm";
     }
 
-    @PostMapping("/createCategory")
+    @PostMapping("/create/category")
     public String createCategory(@ModelAttribute InputCategoryDto inputCategoryDto, Model model) {
         try {
             model.addAttribute("dto", categoryClient.saveCategory(inputCategoryDto));
@@ -40,13 +40,13 @@ public class CategoryController {
         return "category/categoryCreate";
     }
 
-    @GetMapping("/findCategoryByIdForm")
+    @GetMapping("/find/category/id")
     public String findByIdCategory() {
         return "category/categoryFindIdForm";
     }
 
-    @PostMapping("/categoryFindById")
-    public String completedFindById(@RequestParam Long catId, Model model) {
+    @PostMapping("/find/category/id")
+    public String findByIdCategory(@RequestParam Long catId, Model model) {
         try {
             model.addAttribute("dto", categoryClient.getCategoryById(catId));
         } catch (HttpClientErrorException e) {
@@ -57,25 +57,25 @@ public class CategoryController {
         return "category/categoryFindId";
     }
 
-    @GetMapping("/deleteCategoryParams")
+    @GetMapping("/delete/category")
     public String deleteCategory() {
         return "category/categoryDeleteForm";
     }
 
-    @PostMapping("/deleteCategoryParams")
-    public String continueDelete(@RequestParam Long catId) {
+    @PostMapping("/delete/category")
+    public String deleteCategory(@RequestParam Long catId) {
         categoryClient.deleteCategory(catId);
         return "category/categoryDelete";
     }
 
-    @GetMapping("/updateCategory")
+    @GetMapping("/update/category")
     public String patchCategory(@ModelAttribute InputCategoryDto inputCategoryDto, Model model) {
         model.addAttribute(inputCategoryDto);
         return "category/categoryPatchForm";
     }
 
-    @PostMapping("/updateCategory")
-    public String continueParch(@ModelAttribute InputCategoryDto inputCategoryDto, @RequestParam Long catId, Model model) {
+    @PostMapping("/update/category")
+    public String patchCategory(@ModelAttribute InputCategoryDto inputCategoryDto, @RequestParam Long catId, Model model) {
         try {
             model.addAttribute("dto", categoryClient.patchCategory(inputCategoryDto, catId));
         } catch (HttpClientErrorException e) {

@@ -17,7 +17,7 @@ import java.util.Objects;
 public class EventController {
     private final EventClient eventClient;
 
-    @GetMapping("/findEvents")
+    @GetMapping("/find/event/param")
     public String findEventsWithParams() {
         return "events/eventFindWithParams";
     }
