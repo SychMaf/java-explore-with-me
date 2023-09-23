@@ -38,7 +38,7 @@ public class AccountService implements UserDetailsService, AccountServiceInt {
     public String registeredAccount(AccountUser accountUser, MultipartFile file) {
         AccountUser user = userRepo.findByUsername(accountUser.getUsername());
         if (user != null) {
-            return "registration";
+            return "account/registration";
         }
         accountUser.setAvatar("Empty.png");
         if (file != null && !file.getOriginalFilename().isEmpty()) {

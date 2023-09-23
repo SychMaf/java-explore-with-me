@@ -21,7 +21,7 @@ public class AccountController {
     @GetMapping("/registration")
     public String getRegistration(@ModelAttribute AccountUser accountUser, Model model) {
         model.addAttribute(accountUser);
-        return "registration";
+        return "account/registration";
     }
 
     @PostMapping("/registration")
@@ -33,7 +33,7 @@ public class AccountController {
     @GetMapping("/backrooms")
     public String getLK(@AuthenticationPrincipal AccountUser user, Model model) {
         model.addAttribute("user", user);
-        return "LK";
+        return "account/LK";
     }
 
     @GetMapping("/account/patch")
@@ -52,6 +52,6 @@ public class AccountController {
         } catch (RuntimeException e) {
             return "exception/nameException";
         }
-        return "LK";
+        return "account/LK";
     }
 }
