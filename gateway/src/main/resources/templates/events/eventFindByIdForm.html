@@ -15,6 +15,7 @@
 
     <div class="container">
         <h3>Event find by Id form</h3>
+        <h6>Attention: получить по идентификатору можно только ивенты созданные самим пользователем</h6>
         <form th:action="@{/find/event/id}" th:method="post">
             <p>Event id: <input type="number" th:name="eventId"/></p>
             <p>User id: <input type="number" th:name="userId"/></p>

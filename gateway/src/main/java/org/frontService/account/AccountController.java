@@ -7,10 +7,7 @@ import org.frontService.account.service.AccountService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -53,5 +50,18 @@ public class AccountController {
             return "exception/nameException";
         }
         return "account/LK";
+    }
+
+    @GetMapping("/account/users")
+    public String getUserList(Model model) {
+        model.addAttribute("users", accountService.findAll());
+        return "account/userList";
+    }
+
+    @GetMapping("/delete/account/{accountId}")
+    public String deleteAccount(Model model, @PathVariable Long accountId, @AuthenticationPrincipal AccountUser user) {
+        accountService.deleteById(accountId, user);
+        model.addAttribute("users", accountService.findAll());
+        return "redirect:/account/users";
     }
 }

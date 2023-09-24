@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -61,6 +62,17 @@ public class AccountService implements UserDetailsService, AccountServiceInt {
         Authentication authentication = new UsernamePasswordAuthenticationToken(patchAccount, patchAccount.getPassword(), patchAccount.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return userRepo.save(patchAccount);
+    }
+
+    public List<AccountUser> findAll() {
+        return userRepo.findAll();
+    }
+
+    public void deleteById(Long accountId, AccountUser accountUser) {
+        userRepo.deleteById(accountId);
+        if (accountId.equals(accountUser.getId())) {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     private String loadAvatar(MultipartFile file) {
