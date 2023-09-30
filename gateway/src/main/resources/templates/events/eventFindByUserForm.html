@@ -18,7 +18,7 @@
         <h6>Attention: получить по идентификатору можно только ивенты созданные самим пользователем</h6>
         <form th:action="@{/find/event/user}" th:method="post">
 
-            <p>Event id: <input type="number" th:name="userId"/></p>
+            <p>User id: <input type="number" th:name="userId"/></p>
             <input type="submit"/>
         </form>
     </div>

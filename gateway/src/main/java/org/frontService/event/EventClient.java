@@ -4,6 +4,7 @@ import org.dtoPoint.category.InputCategoryDto;
 import org.dtoPoint.category.OutputCategoryDto;
 import org.dtoPoint.events.FullOutputEventDto;
 import org.dtoPoint.events.InputEventDto;
+import org.dtoPoint.events.UpdateEventDto;
 import org.frontService.client.BaseClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -29,5 +30,14 @@ public class EventClient extends BaseClient {
 
     public FullOutputEventDto findById(Long userId, Long eventId) {
         return get("/users/" + userId + "/events/" + eventId, FullOutputEventDto.class).getBody();
+    }
+
+    public FullOutputEventDto patchEvent(UpdateEventDto updateEventDto, Long userId, Long eventId) {
+        return patch("/users/" + userId + "/events/" + eventId, updateEventDto, FullOutputEventDto.class).getBody();
+    }
+
+    public FullOutputEventDto patchEventAdmin(UpdateEventDto updateEventDto, Long eventId) {
+        return patch("/admin/events/" + eventId, updateEventDto, FullOutputEventDto.class).getBody();
+
     }
 }

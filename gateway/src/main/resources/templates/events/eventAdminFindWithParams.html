@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="page-wrap">
+<header th:insert="blocks/header :: header"></header>
+<br>
+
+    <div class="container">
+        <h3>Events search page form</h3>
+        <form th:action="@{http://localhost:8080/events}" th:method="get">
+            <p>Page include id: <input type="number" th:name="from"/></p>
+            <p>Page size: <input type="number" th:name="size"/></p>
+            <p>Include users(parsing with","): <input type="text" name="users"/></p>
+            <p>Include categories(parsing with","): <input type="text" name="categories"/></p>
+            <p>Range start: <input type="text" class="form-control"
+                                   th:value="${#dates.format(#dates.create(2000,3,9,0,0.0) , 'yyyy-MM-dd HH:mm:ss')}"
+                                   th:name="rangeStart"/></p>
+            <p>Range end: <input type="text" class="form-control"
+                                 th:value="${#dates.format(#dates.createNow() , 'yyyy-MM-dd HH:mm:ss')}"
+                                 th:name="rangeEnd"/></p>
+            <input type="submit"/>
+        </form>
+    </div>
+</div>
+
+<footer th:insert="blocks/footer :: footer"></footer>
+</body>
+</html>
